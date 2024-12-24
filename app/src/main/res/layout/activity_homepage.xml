@@ -53,6 +53,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
+        android:id="@+id/button5"
+        android:layout_width="185dp"
+        android:layout_height="185dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="29dp"
+        android:background="@drawable/buttonsquare"
+        android:drawableBottom="@mipmap/shopping_foreground"
+        android:gravity="top|center_horizontal"
+        android:text="Budget"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        app:layout_constraintStart_toEndOf="@+id/button4"
+        app:layout_constraintTop_toBottomOf="@+id/button3" />
+
+    <Button
         android:id="@+id/button4"
         android:layout_width="185dp"
         android:layout_height="185dp"
@@ -72,7 +87,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp" >
+        tools:layout_editor_absoluteY="0dp">
 
     </FrameLayout>
 

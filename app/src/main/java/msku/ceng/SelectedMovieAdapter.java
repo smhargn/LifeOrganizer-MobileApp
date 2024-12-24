@@ -5,12 +5,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.squareup.picasso.Picasso;
-
 import java.util.List;
 
 public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdapter.SelectedMovieViewHolder> {
@@ -32,7 +29,6 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
     public void onBindViewHolder(@NonNull SelectedMovieViewHolder holder, int position) {
         MovieSearchResponse.Movie movie = selectedMovies.get(position);
 
-        // Seçilen film bilgilerini bağlama
         holder.titleTextView.setText(movie.getTitle());
         holder.releaseDateTextView.setText(movie.getReleaseDate());
         Picasso.get().load("https://image.tmdb.org/t/p/w500" + movie.getPosterPath()).into(holder.posterImageView);
