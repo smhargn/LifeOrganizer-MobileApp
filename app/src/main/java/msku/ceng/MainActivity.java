@@ -31,14 +31,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        ImageView imageView = findViewById(R.id.imageView7); // ImageView'i bulun
+        ImageView imageView = findViewById(R.id.imageView7);
 
-// Resmi Picasso ile yükleyin
+
         Picasso.get()
-                .load("https://i.hizliresim.com/hlon0bp.png")  // Resmin URL'sini yazın (veya drawable kaynak kullanabilirsiniz)
-                .resize(1080, 1920) // Resmin boyutunu belirleyin (orijinal çözünürlük)
-                .centerCrop()  // Görseli orantılı şekilde ekranda merkezleyecek
-                .into(imageView); // Görseli ImageView'e ekle
+                .load("https://i.hizliresim.com/hlon0bp.png")
+                .resize(1080, 1920)
+                .centerCrop()
+                .into(imageView);
 
 
 
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent loginPage = new Intent(MainActivity.this,Homepage.class);
                 String username = editTextusername.getText().toString();
-                loginPage.putExtra("USERNAME_KEY", username); // "USERNAME_KEY" ile username'i ekle
+                loginPage.putExtra("USERNAME_KEY", username);
                 startActivity(loginPage);
             }
         });

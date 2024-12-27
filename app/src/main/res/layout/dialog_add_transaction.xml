@@ -50,12 +50,21 @@
         android:hint="Kategori"
         android:layout_marginBottom="8dp"/>
 
+    <EditText
+        android:id="@+id/editTextDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tarih"
+        android:focusable="false"
+        android:clickable="true"
+        android:layout_marginBottom="16dp"/>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Kategori İkonu"
         android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -65,43 +74,47 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="8dp">
 
             <ImageView
                 android:id="@+id/icon1"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@mipmap/eaticon_foreground"
+                android:padding="12dp"
+                android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@mipmap/buiscon_foreground" />
+                android:clickable="true"/>
 
             <ImageView
                 android:id="@+id/icon2"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@mipmap/busicon_foreground"
+                android:padding="12dp"
+                android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@mipmap/eaticon_foreground" />
+                android:clickable="true"/>
 
             <ImageView
                 android:id="@+id/icon3"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@mipmap/invoiceicon_foreground"
+                android:padding="12dp"
+                android:layout_marginEnd="16dp"
                 android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@mipmap/invoiceicon_foreground" />
+                android:clickable="true"/>
 
             <ImageView
                 android:id="@+id/icon4"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@mipmap/shoppingicon_foreground"
+                android:padding="12dp"
                 android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@mipmap/shoppingicon_foreground" />
+                android:clickable="true"/>
         </LinearLayout>
     </HorizontalScrollView>
 

@@ -82,6 +82,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button2" />
 
+    <Button
+        android:id="@+id/button6"
+        android:layout_width="185dp"
+        android:layout_height="185dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="236dp"
+        android:background="@drawable/buttonsquare"
+        android:drawableBottom="@mipmap/shopping_foreground"
+        android:gravity="top|center_horizontal"
+        android:text="Sport Tracker"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button2" />
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"

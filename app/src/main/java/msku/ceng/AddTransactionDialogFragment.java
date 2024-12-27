@@ -1,5 +1,6 @@
 package msku.ceng;
 
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,12 +12,15 @@ import android.widget.RadioGroup;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class AddTransactionDialogFragment extends DialogFragment {
     private OnTransactionAddedListener listener;
     private int selectedIconResourceId = -1;
+    private EditText dateEdit;
+    private Calendar selectedDate;
 
     public interface OnTransactionAddedListener {
         void onTransactionAdded(Budget budget);
@@ -35,9 +39,15 @@ public class AddTransactionDialogFragment extends DialogFragment {
         EditText amountEdit = view.findViewById(R.id.editTextAmount);
         EditText descriptionEdit = view.findViewById(R.id.editTextDescription);
         EditText categoryEdit = view.findViewById(R.id.editTextCategory);
+        dateEdit = view.findViewById(R.id.editTextDate);
         RadioGroup typeGroup = view.findViewById(R.id.radioGroupType);
         Button saveButton = view.findViewById(R.id.buttonSave);
         Button cancelButton = view.findViewById(R.id.buttonCancel);
+
+        // Set up date picker
+        selectedDate = Calendar.getInstance();
+        updateDateDisplay();
+        dateEdit.setOnClickListener(v -> showDatePicker());
 
         setupIconSelection(view);
 
@@ -56,7 +66,8 @@ public class AddTransactionDialogFragment extends DialogFragment {
                 String category = categoryEdit.getText().toString();
                 String type = typeGroup.getCheckedRadioButtonId() == R.id.radioIncome ? "income" : "expense";
 
-                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String date = sdf.format(selectedDate.getTime());
                 String id = String.valueOf(System.currentTimeMillis());
 
                 Budget newBudget = new Budget(id, amount, description, category, date, type, selectedIconResourceId);
@@ -73,6 +84,25 @@ public class AddTransactionDialogFragment extends DialogFragment {
         cancelButton.setOnClickListener(v -> dialog.dismiss());
 
         return dialog;
+    }
+
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                getContext(),
+                (view, year, month, dayOfMonth) -> {
+                    selectedDate.set(year, month, dayOfMonth);
+                    updateDateDisplay();
+                },
+                selectedDate.get(Calendar.YEAR),
+                selectedDate.get(Calendar.MONTH),
+                selectedDate.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+    }
+
+    private void updateDateDisplay() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        dateEdit.setText(sdf.format(selectedDate.getTime()));
     }
 
     private void setupIconSelection(View view) {
@@ -104,18 +134,18 @@ public class AddTransactionDialogFragment extends DialogFragment {
     }
 
     private int getIconResourceId(int viewId) {
-        if (viewId == R.id.icon1) return R.mipmap.buiscon_foreground;
-        if (viewId == R.id.icon2) return R.mipmap.shoppingicon_foreground;
-        if (viewId == R.id.icon3) return R.mipmap.eaticon_foreground;
-        if (viewId == R.id.icon4) return R.mipmap.invoiceicon_foreground;
+        if (viewId == R.id.icon1) return R.mipmap.eaticon_foreground;
+        if (viewId == R.id.icon2) return R.mipmap.busicon_foreground;
+        if (viewId == R.id.icon3) return R.mipmap.invoiceicon_foreground;
+        if (viewId == R.id.icon4) return R.mipmap.shoppingicon_foreground;
         return R.mipmap.othericon_foreground;
     }
 
     private int getIconViewId(int resourceId) {
-        if (resourceId == R.mipmap.buiscon_foreground) return R.id.icon1;
-        if (resourceId == R.mipmap.shoppingicon_foreground) return R.id.icon2;
-        if (resourceId == R.mipmap.eaticon_foreground) return R.id.icon3;
-        if (resourceId == R.mipmap.invoiceicon_foreground) return R.id.icon4;
+        if (resourceId == R.mipmap.eaticon_foreground) return R.id.icon1;
+        if (resourceId == R.mipmap.busicon_foreground) return R.id.icon2;
+        if (resourceId == R.mipmap.invoiceicon_foreground) return R.id.icon3;
+        if (resourceId == R.mipmap.shoppingicon_foreground) return R.id.icon4;
         return R.id.icon1;
     }
 }

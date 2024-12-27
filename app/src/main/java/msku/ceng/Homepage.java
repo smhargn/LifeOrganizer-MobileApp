@@ -15,6 +15,7 @@ public class Homepage extends AppCompatActivity {
     Button goShoppingButton;
     Button goMoviesButton;
     Button goBudgetButton;
+    Button goSportButton;
     EditText usernameInput;
 
     @SuppressLint("MissingInflatedId")
@@ -38,6 +39,7 @@ public class Homepage extends AppCompatActivity {
                 goShoppingButton.setVisibility(View.GONE);
                 goMoviesButton.setVisibility(View.GONE);
                 goBudgetButton.setVisibility(View.GONE);
+                goSportButton.setVisibility(View.GONE);
                 welcomeMessage.setVisibility(View.GONE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new BudgetFragment())
@@ -55,6 +57,34 @@ public class Homepage extends AppCompatActivity {
             }
         });
 
+        goSportButton = findViewById(R.id.button6);
+        goSportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goTaskButton.setVisibility(View.GONE);
+                goShoppingButton.setVisibility(View.GONE);
+                goMoviesButton.setVisibility(View.GONE);
+                goBudgetButton.setVisibility(View.GONE);
+                goSportButton.setVisibility(View.GONE);
+                welcomeMessage.setVisibility(View.GONE);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new SportFragment())
+                        .addToBackStack(null)
+                        .commit();
+
+                getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+                    if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                        goTaskButton.setVisibility(View.VISIBLE);
+                        goShoppingButton.setVisibility(View.VISIBLE);
+                        goMoviesButton.setVisibility(View.VISIBLE);
+                        goBudgetButton.setVisibility(View.VISIBLE);
+                        goSportButton.setVisibility(View.VISIBLE);
+                        welcomeMessage.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        });
+
 
         goMoviesButton = findViewById(R.id.button4);
         goMoviesButton.setOnClickListener(new View.OnClickListener() {
@@ -63,6 +93,7 @@ public class Homepage extends AppCompatActivity {
                 goTaskButton.setVisibility(View.GONE);
                 goShoppingButton.setVisibility(View.GONE);
                 goMoviesButton.setVisibility(View.GONE);
+                goSportButton.setVisibility(View.GONE);
                 welcomeMessage.setVisibility(View.GONE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new MovieFragment())
@@ -87,6 +118,7 @@ public class Homepage extends AppCompatActivity {
             public void onClick(View view) {
                 goTaskButton.setVisibility(View.GONE);
                 goShoppingButton.setVisibility(View.GONE);
+                goSportButton.setVisibility(View.GONE);
                 goMoviesButton.setVisibility(View.GONE);
                 welcomeMessage.setVisibility(View.GONE);
                 getSupportFragmentManager().beginTransaction()
@@ -111,6 +143,7 @@ public class Homepage extends AppCompatActivity {
                 goTaskButton.setVisibility(View.GONE);
                 goShoppingButton.setVisibility(View.GONE);
                 goMoviesButton.setVisibility(View.GONE);
+                goSportButton.setVisibility(View.GONE);
                 welcomeMessage.setVisibility(View.GONE);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new ShoppingFragment())
