@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background">#F5F6FA</color>
+    <color name="text_primary">#2D3436</color>
+    <!-- Gradient Colors -->
+    <color name="gradient_tasks_start">#FF6B6B</color>
+    <color name="gradient_tasks_end">#FF8E8E</color>
+
+    <color name="gradient_shopping_start">#4834D4</color>
+    <color name="gradient_shopping_end">#686DE0</color>
+
+    <color name="gradient_budget_start">#00B894</color>
+    <color name="gradient_budget_end">#00D1A0</color>
+
+    <color name="gradient_sport_start">#F0932B</color>
+    <color name="gradient_sport_end">#FFBE76</color>
+
+    <color name="gradientMovieStartColor">#495057</color>
+    <color name="gradientMovieEndColor">#868e96</color>
+
+    <!-- Stroke Color -->
+    <color name="movieStrokeColor">#FF6F00</color>
+
     <color name="grey">#ecf0f1</color>
     <color name="orange1" >#fab005</color>
     <color name="orange2" >#fff3bf</color>
@@ -9,5 +35,16 @@
     <color name="orange4" >#0b7285</color>
     <color name="grape6" >#f8f0fc</color>
     <color name="bluedark" >#7950f2</color>
+
+
+    <color name="gradient_movies_start">#495057</color>
+    <color name="gradient_movies_end">#212529</color>
+
+    <color name="divider">#E0E0E0</color>
+    <color name="icon_tint">#757575</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="error_red">#F44336</color>
+
+
 
 </resources>

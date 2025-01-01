@@ -27,23 +27,15 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+
         editTextusername = findViewById(R.id.editusername);
-
-
-
         ImageView imageView = findViewById(R.id.imageView7);
-
 
         Picasso.get()
                 .load("https://i.hizliresim.com/hlon0bp.png")
                 .resize(1080, 1920)
                 .centerCrop()
                 .into(imageView);
-
-
-
-
-
 
 
         loginButton = findViewById(R.id.loginButton);

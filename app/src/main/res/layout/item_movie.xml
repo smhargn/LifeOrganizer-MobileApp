@@ -6,48 +6,87 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardElevation="4dp"
-    app:cardCornerRadius="8dp"
-    android:background="@android:color/white">
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/white">
 
-    <RelativeLayout
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical">
 
-        <!-- Film Adı -->
-        <TextView
-            android:id="@+id/movieTitle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Film Adı"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:ellipsize="end"
-            android:maxLines="1" />
+            android:orientation="horizontal"
+            android:padding="12dp">
 
-        <!-- Film Tarihi -->
-        <TextView
-            android:id="@+id/movieDate"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/moviePoster"
+                android:layout_width="100dp"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/poster_background"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/movieTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/movieDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#757575"/>
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/watchedCheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:button="@android:drawable/ic_input_add" />
+
+            <ImageButton
+                android:id="@+id/deleteButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_delete"
+                android:tint="#FF5252" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/expandedView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/movieTitle"
-            android:layout_marginTop="4dp"
-            android:text="Tarih"
-            android:textSize="14sp"
-            android:textColor="#808080" />
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="#FAFAFA"
+            android:visibility="gone">
 
-        <!-- Sil Butonu -->
-        <ImageButton
-            android:id="@+id/deleteButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="@null"
-            android:contentDescription="Delete"
-            android:src="@mipmap/plusshopping_foreground" />
-
-    </RelativeLayout>
-
+            <TextView
+                android:id="@+id/movieSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="#616161"
+                android:lineSpacingExtra="4dp"/>
+        </LinearLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

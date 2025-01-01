@@ -1,41 +1,34 @@
 package msku.ceng;
 
-import android.widget.CheckBox;
-
-import java.text.ParseException;
 import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class Shopping {
+    private String id;
+    private String listName;
+    private String productName;
+    private Date createdDate;
+    private boolean isChecked;
 
-    private String shoppingText;
-    public boolean isChecked;
-
-    public Shopping(String shoppingText, boolean isChecked) {
-        this.shoppingText = shoppingText;
-        this.isChecked = isChecked;
+    public Shopping(String listName, String productName, Date createdDate) {
+        this.id = java.util.UUID.randomUUID().toString();
+        this.listName = listName;
+        this.productName = productName;
+        this.createdDate = createdDate;
+        this.isChecked = false;
     }
 
-    public String getShoppingText() {
-        return shoppingText;
-    }
+    // Getters and Setters
+    public String getId() { return id; }
 
-    public void setShoppingText(String shoppingText) {
-        this.shoppingText = shoppingText;
-    }
+    public String getListName() { return listName; }
+    public void setListName(String listName) { this.listName = listName; }
 
-    public boolean getShoppingCheck() {
-        return isChecked;
-    }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
 
-    public void setShoppingCheck(boolean checked) {
-        this.isChecked = checked;
-    }
+    public Date getCreatedDate() { return createdDate; }
+    public void setCreatedDate(Date createdDate) { this.createdDate = createdDate; }
 
-
-
-
-
-
+    public boolean isChecked() { return isChecked; }
+    public void setChecked(boolean checked) { isChecked = checked; }
 }

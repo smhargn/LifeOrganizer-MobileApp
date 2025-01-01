@@ -1,52 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
+    android:id="@+id/task_card"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="24dp"
-    android:layout_marginRight="24dp"
     android:layout_marginBottom="8dp"
-    app:cardElevation="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardBackgroundColor="@android:color/white"
-    app:strokeWidth="2dp"
-    app:strokeColor="@android:color/darker_gray">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:orientation="horizontal"
+        android:padding="16dp">
 
-
-        <TextView
-            android:id="@+id/task_date"
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/task_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Task Date"
-            android:textColor="@android:color/darker_gray" />
+            android:layout_gravity="center_vertical"
+            app:buttonTint="@color/gradient_tasks_start"/>
 
-        <TextView
-            android:id="@+id/task_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Task Name"
-            app:layout_constraintTop_toBottomOf="@+id/task_date"
-            tools:layout_editor_absoluteX="8dp" />
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
 
+            <TextView
+                android:id="@+id/category_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/gradient_tasks_start"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/task_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/task_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/grey"/>
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/delete_button"
-            android:layout_width="66dp"
-            android:layout_height="37dp"
-            android:layout_marginStart="292dp"
-            android:background="@null"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@mipmap/remove3_foreground" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/deleteshopping_background"
+            android:padding="4dp"
+            app:tint="@color/grey"/>
+    </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

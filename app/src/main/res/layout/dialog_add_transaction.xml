@@ -1,141 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/dialog_background">
 
-    <RadioGroup
-        android:id="@+id/radioGroupType"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:text="Yeni İşlem"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="24dp"/>
 
-        <RadioButton
-            android:id="@+id/radioIncome"
-            android:layout_width="wrap_content"
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/divider"
+        android:layout_marginBottom="24dp">
+
+        <RadioGroup
+            android:id="@+id/radioGroupType"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gelir"
-            android:checked="true"
-            android:layout_weight="1"/>
+            android:orientation="horizontal"
+            android:padding="8dp">
 
-        <RadioButton
-            android:id="@+id/radioExpense"
-            android:layout_width="wrap_content"
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioIncome"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Gelir"
+                android:checked="true"
+                android:buttonTint="@color/success_green"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioExpense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Gider"
+                android:buttonTint="@color/error_red"/>
+        </RadioGroup>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@drawable/ic_budget"
+        app:startIconTint="@color/icon_tint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextAmount"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gider"
-            android:layout_weight="1"/>
-    </RadioGroup>
+            android:hint="Miktar"
+            android:inputType="numberDecimal"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <EditText
-        android:id="@+id/editTextAmount"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Miktar"
-        android:inputType="numberDecimal"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@drawable/ic_add"
+        app:startIconTint="@color/icon_tint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-    <EditText
-        android:id="@+id/editTextDescription"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Açıklama"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Açıklama"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@drawable/ic_movie"
+        app:startIconTint="@color/icon_tint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-    <EditText
-        android:id="@+id/editTextCategory"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Kategori"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Kategori"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="24dp"
+        app:startIconDrawable="@drawable/ic_launcher_foreground"
+        app:startIconTint="@color/icon_tint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-    <EditText
-        android:id="@+id/editTextDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Tarih"
-        android:focusable="false"
-        android:clickable="true"
-        android:layout_marginBottom="16dp"/>
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tarih"
+            android:focusable="false"
+            android:clickable="true"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Kategori İkonu"
         android:textStyle="bold"
+        android:textColor="@color/text_primary"
         android:layout_marginBottom="12dp"/>
 
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="24dp"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="4dp">
 
-            <ImageView
-                android:id="@+id/icon1"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@mipmap/eaticon_foreground"
-                android:padding="12dp"
-                android:layout_marginEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"/>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/icon1Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
+                android:layout_marginEnd="12dp">
 
-            <ImageView
-                android:id="@+id/icon2"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@mipmap/busicon_foreground"
-                android:padding="12dp"
-                android:layout_marginEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"/>
+                <ImageView
+                    android:id="@+id/icon1"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@mipmap/eaticon_foreground"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"/>
+            </com.google.android.material.card.MaterialCardView>
 
-            <ImageView
-                android:id="@+id/icon3"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@mipmap/invoiceicon_foreground"
-                android:padding="12dp"
-                android:layout_marginEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"/>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/icon2Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
+                android:layout_marginEnd="12dp">
 
-            <ImageView
-                android:id="@+id/icon4"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@mipmap/shoppingicon_foreground"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"/>
+                <ImageView
+                    android:id="@+id/icon2"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@mipmap/busicon_foreground"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/icon3Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
+                android:layout_marginEnd="12dp">
+
+                <ImageView
+                    android:id="@+id/icon3"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@mipmap/invoiceicon_foreground"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/icon4Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider">
+
+                <ImageView
+                    android:id="@+id/icon4"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@mipmap/shoppingicon_foreground"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackground"/>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </HorizontalScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="end">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonCancel"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="İptal"
-            android:layout_marginEnd="8dp"/>
+            android:textColor="@color/text_primary"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSave"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Kaydet"/>
+            android:text="Kaydet"
+            app:cornerRadius="8dp"/>
     </LinearLayout>
 </LinearLayout>

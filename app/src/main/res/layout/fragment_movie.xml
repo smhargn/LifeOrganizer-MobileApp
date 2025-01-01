@@ -1,71 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/grey"
-    android:padding="16dp">
+    android:background="#F5F5F5">
 
-
-    <!-- Arama Alanı -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:padding="16dp">
 
-        <EditText
-            android:id="@+id/searchEditText"
-            android:layout_width="0dp"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/addMovieButton"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black"
-            android:hint="Film adı girin"
-            android:padding="8dp" />
+            android:text="Film Ekle"
+            android:textAllCaps="false"
+            app:cornerRadius="12dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp" />
 
-        <ImageButton
-            android:id="@+id/searchButton"
-            android:layout_width="57dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackground"
-            android:contentDescription="Ara"
-            android:src="@mipmap/plusshopping_foreground" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/segmented_background"
+            android:padding="2dp"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/watchListButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:text="Watch List"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:cornerRadius="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/watchedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:text="Watched List"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Arama Sonuçları Başlığı -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Arama Sonuçları:"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Arama Sonuçları RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/searchResultsRecyclerView"
+        android:id="@+id/moviesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:overScrollMode="always" />
-
-    <!-- Seçilen Filmler Başlığı -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Seçilen Filmler:"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp" />
-
-    <!-- Seçilen Filmler RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/selectedMoviesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:overScrollMode="always" />
+        android:padding="8dp"
+        android:clipToPadding="false" />
 </LinearLayout>
