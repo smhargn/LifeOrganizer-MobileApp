@@ -49,6 +49,9 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
 
+    implementation("com.google.firebase:firebase-firestore:24.9.0") // Firestore için
+    implementation("com.google.firebase:firebase-database:20.3.0")  // Realtime Database için
+
 
     // Diğer bağımlılıklar
     implementation(libs.appcompat)

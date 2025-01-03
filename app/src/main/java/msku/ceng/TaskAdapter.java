@@ -7,27 +7,35 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-import java.text.SimpleDateFormat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     private final List<Task> mTaskList;
     private final List<Task> mFilteredList;
-    private Context mContext;
+    private final Context mContext;
     private String currentCategory = "All Categories";
     private String currentDateFilter = "all";
     private Date currentDate = new Date();
+    private final FirebaseFirestore db;
+    private final String userId;
 
     public TaskAdapter(List<Task> tasks, Context context) {
         mTaskList = tasks;
         mFilteredList = new ArrayList<>(tasks);
         mContext = context;
+        db = FirebaseFirestore.getInstance();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
     }
 
     @Override
@@ -48,28 +56,43 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             taskEntry.setCompleted(isChecked);
+            updateTaskInFirebase(taskEntry);
         });
 
-        holder.deleteButton.setOnClickListener(v -> {
-            int pos = holder.getAdapterPosition();
-            if (pos != RecyclerView.NO_POSITION) {
-                mTaskList.remove(taskEntry);
-                mFilteredList.remove(pos);
-                notifyItemRemoved(pos);
-            }
-        });
+        holder.deleteButton.setOnClickListener(v -> deleteTask(taskEntry, holder.getAdapterPosition()));
+    }
+
+    private void updateTaskInFirebase(Task task) {
+        if (userId != null) {
+            db.collection("users").document(userId)
+                    .collection("tasks").document(task.getId())
+                    .update("completed", task.isCompleted());
+        }
+    }
+
+    private void deleteTask(Task task, int position) {
+        if (userId != null) {
+            db.collection("users").document(userId)
+                    .collection("tasks").document(task.getId())
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        mTaskList.remove(task);
+                        mFilteredList.remove(position);
+                        notifyItemRemoved(position);
+                    });
+        }
     }
 
     public void applyFilters() {
         mFilteredList.clear();
         List<Task> tempList = new ArrayList<>(mTaskList);
 
-        // Apply category filter
+
         if (!"All Categories".equals(currentCategory)) {
             tempList.removeIf(task -> !task.getCategory().equals(currentCategory));
         }
 
-        // Apply date filter
+
         if (!"all".equals(currentDateFilter)) {
             Calendar selectedCal = Calendar.getInstance();
             selectedCal.setTime(currentDate);
@@ -107,14 +130,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         applyFilters();
     }
 
-
-
     @Override
     public int getItemCount() {
         return mFilteredList.size();
     }
-
-
 
     private boolean isSameDay(Calendar cal1, Calendar cal2) {
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&

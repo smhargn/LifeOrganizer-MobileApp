@@ -38,7 +38,7 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         watchListButton.setOnClickListener(v -> showWatchList());
         watchedButton.setOnClickListener(v -> showWatchedMovies());
 
-        showWatchList(); // Başlangıçta Watch List'i göster
+        showWatchList();
         return view;
     }
 
@@ -72,7 +72,6 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
             }
         }
 
-        // Güncel listeyi göster
         if (showingWatchList) {
             movieAdapter.updateMovies(new ArrayList<>(watchList));
         } else {

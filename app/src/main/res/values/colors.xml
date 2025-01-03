@@ -8,7 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="background">#F5F6FA</color>
-    <color name="text_primary">#2D3436</color>
+    <color name="text_primary">#495057</color>
     <!-- Gradient Colors -->
     <color name="gradient_tasks_start">#FF6B6B</color>
     <color name="gradient_tasks_end">#FF8E8E</color>
@@ -29,6 +29,7 @@
     <color name="movieStrokeColor">#FF6F00</color>
 
     <color name="grey">#ecf0f1</color>
+    <color name="darkgrey">#495057</color>
     <color name="orange1" >#fab005</color>
     <color name="orange2" >#fff3bf</color>
     <color name="orange3" >#fff9db</color>

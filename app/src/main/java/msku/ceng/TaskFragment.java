@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -17,6 +19,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import msku.ceng.repository.TaskRepository;
 import yuku.ambilwarna.AmbilWarnaDialog;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,29 +36,62 @@ import java.util.List;
 import java.util.Locale;
 
 public class TaskFragment extends Fragment {
+    private RecyclerView taskRecyclerView;
+    private FirebaseFirestore db;
     private TaskAdapter taskAdapter;
     private List<Task> taskList = new ArrayList<>();
     private int selectedColor = 0xFFFFFFFF;
     private Button dateFilterButton,categoryFilterButton;
+    private TaskRepository taskRepository;
 
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+        taskList = new ArrayList<>();
+        taskRepository = new TaskRepository();
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_taskpage, container, false);
+
         initializeViews(view);
+        setupRecyclerView();
+        fetchTasksFromFirebase();
+
+
         return view;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupRecyclerView();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Firebase'den verileri tekrar çekiyoruz
+        setupRecyclerView();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setupRecyclerView();
+    }
+
+
+
     private void initializeViews(View view) {
-        RecyclerView recyclerView = view.findViewById(R.id.taskView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        taskAdapter = new TaskAdapter(taskList, getContext());
-        recyclerView.setAdapter(taskAdapter);
-
+        taskRecyclerView = view.findViewById(R.id.taskView);
         dateFilterButton = view.findViewById(R.id.date_filter_button);
         categoryFilterButton = view.findViewById(R.id.category_filter_button);
+
 
         dateFilterButton.setOnClickListener(v -> showDateFilterDialog());
         categoryFilterButton.setOnClickListener(v -> showCategoryFilterDialog());
@@ -57,6 +99,17 @@ public class TaskFragment extends Fragment {
         FloatingActionButton addButton = view.findViewById(R.id.button3);
         addButton.setOnClickListener(v -> showAddTaskDialog());
     }
+
+    private void setupRecyclerView() {
+        if (taskAdapter == null) {
+            taskAdapter = new TaskAdapter(taskList, requireContext());
+            taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+            taskRecyclerView.setAdapter(taskAdapter);
+        }
+        // Sadece verileri çek, adapter'ı tekrar oluşturma
+        fetchTasksFromFirebase();
+    }
+
 
     private void showDateFilterDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_date_filter, null);
@@ -150,6 +203,8 @@ public class TaskFragment extends Fragment {
 
     }
 
+
+
     private void setupAddTaskDialog(View dialogView) {
         EditText taskInput = dialogView.findViewById(R.id.task_input);
         Spinner categorySpinner = dialogView.findViewById(R.id.category_spinner);
@@ -215,10 +270,64 @@ public class TaskFragment extends Fragment {
     }
 
     private void addNewTask(String taskText, String date, String timeStr, String category) {
-        Task newTask = new Task(taskText, date, timeStr, category, selectedColor);
-        taskList.add(newTask);
-        Collections.sort(taskList, (t1, t2) -> t1.getDate().compareTo(t2.getDate()));
-        taskAdapter.notifyDataSetChanged();
-        taskAdapter.applyFilters();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Mevcut kullanıcıyı al
+
+        // Kullanıcı oturum açmamışsa uyar
+        if (user == null) {
+            Toast.makeText(getContext(), "Lütfen önce oturum açın.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userId = user.getUid(); // Kullanıcı kimliği
+        String taskId = db.collection("users").document(userId)
+                .collection("tasks").document().getId(); // Alt koleksiyon için benzersiz ID
+
+        // Yeni görev oluştur
+        Task newTask = new Task(taskId, taskText, date, timeStr, category, selectedColor, userId);
+
+        // Firebase'e ekle
+        db.collection("users").document(userId)
+        .collection("tasks").document(taskId).set(newTask)
+                .addOnSuccessListener(aVoid -> {
+                    taskList.add(newTask);
+                    Collections.sort(taskList, (t1, t2) -> t1.getTaskDate().compareTo(t2.getTaskDate()));
+                    taskAdapter.notifyDataSetChanged();
+                    taskAdapter.applyFilters();
+                    fetchTasksFromFirebase();  // Yeni görev eklendikten sonra verileri tekrar çek
+                    Toast.makeText(getContext(), "Görev başarıyla eklendi!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Görev eklenemedi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void fetchTasksFromFirebase() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(getContext(), "Please login first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        db.collection("users").document(userId)
+        .collection("tasks")
+                .whereEqualTo("userId", userId)
+                .get()  // addSnapshotListener yerine get() kullanıyoruz
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    taskList.clear();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        Task task = document.toObject(Task.class);
+                        if (task != null) {
+                            task.setId(document.getId());
+                            taskList.add(task);
+                        }
+                    }
+                    Collections.sort(taskList, (t1, t2) -> t1.getTaskDate().compareTo(t2.getTaskDate()));
+                    taskAdapter.notifyDataSetChanged();
+                    taskAdapter.applyFilters();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error loading tasks: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

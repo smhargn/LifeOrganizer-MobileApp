@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.squareup.picasso.Picasso;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText inputName, inputEmail, inputPassword;
@@ -31,6 +33,13 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        ImageView imageView = findViewById(R.id.imageView7);
+        Picasso.get()
+                .load("https://i.hizliresim.com/hlon0bp.png")
+                .resize(1080, 1920)
+                .centerCrop()
+                .into(imageView);
 
         // Initialize views
         inputName = findViewById(R.id.input_name);

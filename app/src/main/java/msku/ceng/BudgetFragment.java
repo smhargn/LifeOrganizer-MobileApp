@@ -11,11 +11,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +54,9 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     private String currentPeriod = "day";
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget, container, false);
@@ -56,7 +64,16 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         setupRecyclerView();
         setupListeners();
         initializeData();
+        fetchBudgetsFromFirestore();
+        fetchPlansFromFirestore();
         return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
     }
 
     private void initializeViews(View view) {
@@ -123,7 +140,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
             updateFilterButtonStyles();
         });
 
-        // Period filter listeners
         buttonFilterDay.setOnClickListener(v -> {
             updatePeriodFilter("day");
             updatePeriodButtonStyles();
@@ -204,10 +220,30 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
 
 
     private void showAddPlanDialog() {
+        String userId = auth.getCurrentUser().getUid();
         AddPlanDialogFragment dialog = new AddPlanDialogFragment();
         dialog.setOnPlanAddedListener(plan -> {
             plansList.add(plan);
             planAdapter.notifyDataSetChanged();
+
+            String planId = db.collection("users")
+                    .document(userId)
+                    .collection("plans")
+                    .document()
+                    .getId();
+            plan.setId(planId);
+
+            db.collection("users")
+                    .document(userId)
+                    .collection("plans")
+                    .document(planId)
+                    .set(plan)
+                    .addOnSuccessListener(aVoid -> {
+                        plansList.add(plan);
+                        planAdapter.notifyDataSetChanged();
+                        Toast.makeText(getContext(),"Plan Addded",Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(getContext(),"Hata",Toast.LENGTH_SHORT).show());
         });
         dialog.show(getChildFragmentManager(), "AddPlan");
     }
@@ -224,13 +260,33 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         remainingText.setText(String.format(Locale.getDefault(),
                 "Kalan: ₺%.2f", plan.getRemainingAmount()));
 
+
+        String userId = auth.getCurrentUser().getUid();
         builder.setView(view)
                 .setTitle("Para Biriktir")
                 .setPositiveButton("Ekle", (dialog, which) -> {
                     try {
                         double amount = Double.parseDouble(amountEdit.getText().toString());
                         plan.deposit(amount);
-                        planAdapter.notifyDataSetChanged();
+
+                        db.collection("users")
+                                .document(userId)
+                                .collection("plans")
+                                .document(plan.getId())
+                                .update("currentAmount", plan.getCurrentAmount(),
+                                        "remainingAmount",plan.getRemainingAmount(),
+                                        "progressPercentage",plan.getProgressPercentage())
+                                .addOnSuccessListener(aVoid -> {
+                                    planAdapter.notifyDataSetChanged();
+                                    Toast.makeText(getContext(),
+                                            "Miktar başarıyla eklendi",
+                                            Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getContext(),
+                                            "Güncelleme başarısız: " + e.getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+                                });
                     } catch (NumberFormatException e) {
                         Toast.makeText(getContext(),
                                 "Lütfen geçerli bir miktar girin",
@@ -251,7 +307,7 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         filteredList.clear();
         List<Budget> tempList = new ArrayList<>(budgetList);
 
-        // Apply period filter
+
         Calendar periodStart = Calendar.getInstance();
         switch (currentPeriod) {
 
@@ -272,7 +328,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
                 break;
         }
 
-        // Filter by period
         tempList = tempList.stream()
                 .filter(budget -> {
                     try {
@@ -285,7 +340,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
                 })
                 .collect(Collectors.toList());
 
-        // Apply type filter
         if (!currentFilter.equals("all")) {
             tempList = tempList.stream()
                     .filter(budget -> budget.getType().equals(currentFilter))
@@ -311,12 +365,10 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
 
         double totalBalance = totalIncome - totalExpense;
 
-        // Format currency values
         String formattedBalance = String.format(Locale.getDefault(), "%.2f ₺", totalBalance);
         String formattedIncome = String.format(Locale.getDefault(), "%.2f ₺", totalIncome);
         String formattedExpense = String.format(Locale.getDefault(), "%.2f ₺", totalExpense);
 
-        // Update UI
         totalBalanceText.setText(formattedBalance);
         totalIncomeText.setText(formattedIncome);
         totalExpenseText.setText(formattedExpense);
@@ -324,12 +376,66 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
 
     @Override
     public void onTransactionAdded(Budget budget) {
-        budgetList.add(budget);
-        applyFilters();
+        String userId = auth.getCurrentUser().getUid();
+        db.collection("users")
+                .document(userId)
+                .collection("budgets")
+                .add(budget)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(getContext(), "Bütçe başarıyla eklendi!", Toast.LENGTH_SHORT).show();
+                    budgetList.add(budget);
+                    applyFilters();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Bütçe eklenirken hata oluştu.", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Hata: ", e);
+                });
 
-        // Make sure plans are still visible
         if (planAdapter != null && !plansList.isEmpty()) {
             planAdapter.notifyDataSetChanged();
         }
     }
+
+    private void fetchBudgetsFromFirestore() {
+        String userId = auth.getCurrentUser().getUid();
+
+        db.collection("users")
+                .document(userId)
+                .collection("budgets")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    budgetList.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Budget budget = doc.toObject(Budget.class);
+                        budgetList.add(budget);
+                    }
+                    applyFilters();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Veriler alınamadı.", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Hata: ", e);
+                });
+    }
+
+    private void fetchPlansFromFirestore() {
+        String userId = auth.getCurrentUser().getUid();
+        db.collection("users")
+                .document(userId)
+                .collection("plans")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    plansList.clear();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        Plan plan = document.toObject(Plan.class);
+                        if (plan != null) {
+                            plan.setId(document.getId());
+                            plansList.add(plan);
+                        }
+                    }
+                    planAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(),"Error",Toast.LENGTH_SHORT).show());
+    }
+
+
 }

@@ -9,6 +9,10 @@ public class Budget {
     private String type;
     private int iconResourceId;
 
+    public Budget() {
+        // Firebase
+    }
+
     public Budget(String id, double amount, String description, String category, String date, String type, int iconResourceId) {
         this.id = id;
         this.amount = amount;

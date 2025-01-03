@@ -43,7 +43,7 @@ public class Homepage extends AppCompatActivity {
             return false;
         });
 
-        // Load default fragment
+
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())

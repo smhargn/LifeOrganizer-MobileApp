@@ -39,7 +39,7 @@
         android:background="@drawable/grey_bg"
         android:ems="10"
         android:gravity="center"
-        android:hint="Enter Your Username"
+        android:hint="Enter Your Mail"
         android:inputType="text"
         android:padding="8dp"
         android:textColor="@color/black"
