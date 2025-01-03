@@ -49,6 +49,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
 
+    implementation("com.google.android.gms:play-services-auth:20.3.0")
+
     implementation("com.google.firebase:firebase-firestore:24.9.0") // Firestore için
     implementation("com.google.firebase:firebase-database:20.3.0")  // Realtime Database için
 

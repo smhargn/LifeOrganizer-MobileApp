@@ -5,4 +5,5 @@
     <string name="signin"><u>Sign in</u></string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="default_web_client_id">84903059847-of15mp80o93afbacibd5hk2it2clt4ns.apps.googleusercontent.com</string>
 </resources>
