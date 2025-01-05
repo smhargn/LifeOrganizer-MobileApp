@@ -46,6 +46,9 @@
     <color name="success_green">#4CAF50</color>
     <color name="error_red">#F44336</color>
 
+    <color name="menu_item_color_selected">#FF5722</color>
+    <color name="menu_item_color_unselected">#757575</color>
+
 
 
 </resources>

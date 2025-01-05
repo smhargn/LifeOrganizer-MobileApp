@@ -55,11 +55,13 @@
 
             <CheckBox
                 android:id="@+id/watchedCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="8dp"
-                android:button="@android:drawable/ic_input_add" />
+                android:button="@mipmap/confirm_icon_foreground"
+                android:checked="false"
+                android:textColor="#000000" />
 
             <ImageButton
                 android:id="@+id/deleteButton"
@@ -67,7 +69,7 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_delete"
+                android:src="@mipmap/delete_icon_foreground"
                 android:tint="#FF5252" />
         </LinearLayout>
 
