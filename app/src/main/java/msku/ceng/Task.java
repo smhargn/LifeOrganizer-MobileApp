@@ -62,7 +62,7 @@ public class Task {
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
-    // Firebase için gerekli getter/setter
+
     public String getTaskDate() { return taskDate; }
     public void setTaskDate(String taskDate) { this.taskDate = taskDate; }
 

@@ -6,7 +6,7 @@ import retrofit2.http.Query;
 
 public interface MovieApiService {
 
-    // Film arama isteği
+    // Film Search
     @GET("search/movie")
     Call<MovieSearchResponse> searchMovies(
             @Query("query") String query,

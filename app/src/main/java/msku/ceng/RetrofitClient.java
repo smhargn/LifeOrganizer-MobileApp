@@ -11,8 +11,8 @@ public class RetrofitClient {
     public static MovieApiService getApiService() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
-                    .baseUrl("https://api.themoviedb.org/3/")  // API'nin temel URL'si
-                    .addConverterFactory(GsonConverterFactory.create())  // JSON'dan nesneye dönüştürme
+                    .baseUrl("https://api.themoviedb.org/3/")
+                    .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
         return retrofit.create(MovieApiService.class);

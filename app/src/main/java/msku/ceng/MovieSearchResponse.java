@@ -14,14 +14,23 @@ public class MovieSearchResponse {
     }
 
     public static class Movie {
-        private String title;
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        private String title,id;
         private String release_date;
         private String poster_path;
         private String overview;
         private boolean isExpanded;
         private boolean isWatched;
 
-        public Movie(String title, String release_date, String poster_path, String overview, boolean isExpanded) {
+        public Movie(String id,String title, String release_date, String poster_path, String overview, boolean isExpanded) {
+            this.id = id;
             this.title = title;
             this.release_date = release_date;
             this.poster_path = poster_path;

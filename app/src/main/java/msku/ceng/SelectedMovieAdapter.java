@@ -1,5 +1,6 @@
 package msku.ceng;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,23 +8,33 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import msku.ceng.repository.MovieRepository;
+
 public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdapter.SelectedMovieViewHolder> {
     private List<MovieSearchResponse.Movie> movies;
     private final OnMovieWatchedListener watchedListener;
+    private final MovieRepository movieRepository;
 
     public interface OnMovieWatchedListener {
         void onMovieWatchedStatusChanged(MovieSearchResponse.Movie movie, boolean isWatched);
+
     }
 
     public SelectedMovieAdapter(List<MovieSearchResponse.Movie> movies, OnMovieWatchedListener listener) {
         this.movies = new ArrayList<>(movies);
         this.watchedListener = listener;
+        this.movieRepository = new MovieRepository();
     }
 
     public void updateMovies(List<MovieSearchResponse.Movie> newMovies) {
@@ -45,23 +56,75 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
         holder.titleTextView.setText(movie.getTitle());
         holder.dateTextView.setText(movie.getReleaseDate());
 
-        // CheckBox listener'ı temizle ve yeni durumu ayarla
-        holder.watchedCheckbox.setOnCheckedChangeListener(null);
+        holder.watchedCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser == null) return;
+
+            String userId = currentUser.getUid();
+            movie.setWatched(isChecked);
+
+            movieRepository.updateMovieWatchStatus(userId, movie.getId(), isChecked)
+                    .addOnSuccessListener(aVoid -> {
+                        if (watchedListener != null) {
+                            watchedListener.onMovieWatchedStatusChanged(movie, isChecked);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Revert checkbox state on failure
+                        holder.watchedCheckbox.setChecked(!isChecked);
+                        Toast.makeText(holder.itemView.getContext(),
+                                "Failed to update status: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+        });
+
         holder.watchedCheckbox.setChecked(movie.isWatched());
+
+        holder.deleteButton.setOnClickListener(v -> {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser == null) {
+                Log.d("DeleteMovie", "Current user is null. Exiting.");
+                return;
+            }
+
+            String userId = currentUser.getUid();
+            Log.d("DeleteMovie", "Current user ID: " + userId);
+
+            MovieSearchResponse.Movie movieToDelete = movies.get(holder.getAdapterPosition());
+            Log.d("DeleteMovie", "Movie to delete: " + movieToDelete.getId());
+
+            movieRepository.deleteMovie(userId, movieToDelete.getId())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("DeleteMovie", "Movie deletion successful.");
+                        int adapterPosition = holder.getAdapterPosition();
+                        if (adapterPosition != RecyclerView.NO_POSITION) {
+                            Log.d("DeleteMovie", "Removing movie from position: " + adapterPosition);
+                            movies.remove(adapterPosition);
+                            notifyItemRemoved(adapterPosition);
+
+                            if (watchedListener != null) {
+                                Log.d("DeleteMovie", "Calling watchedListener with status change.");
+                                watchedListener.onMovieWatchedStatusChanged(movieToDelete, false);
+                            }
+
+                            Toast.makeText(holder.itemView.getContext(),
+                                    "Movie deleted successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.d("DeleteMovie", "Failed to delete movie: " + e.getMessage());
+                        Toast.makeText(holder.itemView.getContext(),
+                                "Failed to delete movie: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    });
+        });
+
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             Picasso.get()
                     .load("https://image.tmdb.org/t/p/w500" + movie.getPosterPath())
                     .into(holder.posterImageView);
         }
-
-        // Yeni listener'ı ekle
-        holder.watchedCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            movie.setWatched(isChecked);
-            if (watchedListener != null) {
-                watchedListener.onMovieWatchedStatusChanged(movie, isChecked);
-            }
-        });
 
         if (holder.summaryTextView != null) {
             holder.summaryTextView.setText(movie.getOverview());
@@ -74,17 +137,6 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
             notifyItemChanged(holder.getAdapterPosition());
         });
 
-        holder.deleteButton.setOnClickListener(v -> {
-            int adapterPosition = holder.getAdapterPosition();
-            if (adapterPosition != RecyclerView.NO_POSITION && adapterPosition < movies.size()) {
-                MovieSearchResponse.Movie movieToRemove = movies.get(adapterPosition);
-                movies.remove(adapterPosition);
-                notifyItemRemoved(adapterPosition);
-                if (watchedListener != null) {
-                    watchedListener.onMovieWatchedStatusChanged(movieToRemove, false);
-                }
-            }
-        });
     }
 
     @Override

@@ -5,11 +5,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Toast;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.annotations.Nullable;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import msku.ceng.repository.MovieRepository;
 
 public class MovieFragment extends Fragment implements MovieSearchFragment.MovieSelectionListener {
     private RecyclerView moviesRecyclerView;
@@ -20,6 +31,13 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
     private Button watchListButton;
     private Button watchedButton;
     private boolean showingWatchList = true;
+    private MovieRepository movieRepository;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        movieRepository = new MovieRepository();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -37,6 +55,7 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         addMovieButton.setOnClickListener(v -> showMovieSearchFragment());
         watchListButton.setOnClickListener(v -> showWatchList());
         watchedButton.setOnClickListener(v -> showWatchedMovies());
+        fetchMovies();
 
         showWatchList();
         return view;
@@ -72,6 +91,7 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
             }
         }
 
+        // Update the current view
         if (showingWatchList) {
             movieAdapter.updateMovies(new ArrayList<>(watchList));
         } else {
@@ -91,12 +111,85 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
     }
 
     @Override
-    public void onMovieSelected(MovieSearchResponse.Movie movie) {
-        if (!watchList.contains(movie) && !watchedMovies.contains(movie)) {
-            watchList.add(movie);
-            if (showingWatchList) {
-                movieAdapter.updateMovies(new ArrayList<>(watchList));
-            }
-        }
+    public void onMovieSelected(MovieSearchResponse.Movie movieResponse) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String userId = currentUser.getUid();
+//        if (!watchList.contains(movie) && !watchedMovies.contains(movie)) {
+//            watchList.add(movie);
+//            if (showingWatchList) {
+//                movieAdapter.updateMovies(new ArrayList<>(watchList));
+//            }
+//        }
+
+        Movie movie = new Movie(
+                movieResponse.getId(),
+                movieResponse.getTitle(),
+                movieResponse.getReleaseDate(),
+                movieResponse.getPosterPath(),
+                movieResponse.getOverview(),
+                false
+        );
+
+        movieRepository.addMovie(userId, movie)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Movie added successfully", Toast.LENGTH_SHORT).show();
+                    if (!watchList.contains(movieResponse) && !watchedMovies.contains(movieResponse)) {
+                        watchList.add(movieResponse);
+                        if (showingWatchList) {
+                            movieAdapter.updateMovies(new ArrayList<>(watchList));
+                        }
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error adding movie: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private void fetchMovies() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        movieRepository.getUserMovies(userId)
+                .addOnSuccessListener(querySnapshot -> {
+                    watchList.clear();
+                    watchedMovies.clear();
+
+                    for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                        Movie movie = document.toObject(Movie.class);
+                        if (movie != null) {
+                            if (movie.isWatched()) {
+                                watchedMovies.add(convertToMovieResponse(movie));
+                            } else {
+                                watchList.add(convertToMovieResponse(movie));
+                            }
+                        }
+                    }
+
+                    if (showingWatchList) {
+                        movieAdapter.updateMovies(new ArrayList<>(watchList));
+                    } else {
+                        movieAdapter.updateMovies(new ArrayList<>(watchedMovies));
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error fetching movies: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private MovieSearchResponse.Movie convertToMovieResponse(Movie movieData) {
+        // Convert MovieData to MovieSearchResponse.Movie
+        MovieSearchResponse.Movie movie = new MovieSearchResponse.Movie(
+                movieData.getId(),
+                movieData.getTitle(),
+                movieData.getReleaseDate(),
+                movieData.getPosterPath(),
+                movieData.getOverview(),
+                false
+        );
+        movie.setWatched(movieData.isWatched());
+        return movie;
     }
 }

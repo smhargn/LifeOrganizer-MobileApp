@@ -1,8 +1,15 @@
 package msku.ceng;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +32,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import msku.ceng.notification.TaskNotificationManager;
 import msku.ceng.repository.TaskRepository;
 import yuku.ambilwarna.AmbilWarnaDialog;
 import java.text.SimpleDateFormat;
@@ -34,6 +42,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import android.app.AlarmManager;
+import android.os.Build;
+import android.provider.Settings;
 
 public class TaskFragment extends Fragment {
     private RecyclerView taskRecyclerView;
@@ -43,6 +54,8 @@ public class TaskFragment extends Fragment {
     private int selectedColor = 0xFFFFFFFF;
     private Button dateFilterButton,categoryFilterButton;
     private TaskRepository taskRepository;
+    private TaskNotificationManager notificationManager;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,10 +69,23 @@ public class TaskFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_taskpage, container, false);
+        notificationManager = new TaskNotificationManager(requireContext());
 
         initializeViews(view);
+
+        // Add alarm permission check
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+
         setupRecyclerView();
         fetchTasksFromFirebase();
+
+
 
 
         return view;
@@ -74,7 +100,7 @@ public class TaskFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Firebase'den verileri tekrar çekiyoruz
+
         setupRecyclerView();
 
     }
@@ -106,7 +132,7 @@ public class TaskFragment extends Fragment {
             taskRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
             taskRecyclerView.setAdapter(taskAdapter);
         }
-        // Sadece verileri çek, adapter'ı tekrar oluşturma
+
         fetchTasksFromFirebase();
     }
 
@@ -264,28 +290,28 @@ public class TaskFragment extends Fragment {
                 },
                 calendar.get(Calendar.HOUR_OF_DAY),
                 calendar.get(Calendar.MINUTE),
-                true // Use 24-hour format
+                true
         );
         timePickerDialog.show();
     }
 
     private void addNewTask(String taskText, String date, String timeStr, String category) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Mevcut kullanıcıyı al
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // Kullanıcı oturum açmamışsa uyar
+
         if (user == null) {
             Toast.makeText(getContext(), "Lütfen önce oturum açın.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String userId = user.getUid(); // Kullanıcı kimliği
+        String userId = user.getUid();
         String taskId = db.collection("users").document(userId)
-                .collection("tasks").document().getId(); // Alt koleksiyon için benzersiz ID
+                .collection("tasks").document().getId();
 
-        // Yeni görev oluştur
+
         Task newTask = new Task(taskId, taskText, date, timeStr, category, selectedColor, userId);
 
-        // Firebase'e ekle
+
         db.collection("users").document(userId)
         .collection("tasks").document(taskId).set(newTask)
                 .addOnSuccessListener(aVoid -> {
@@ -293,7 +319,8 @@ public class TaskFragment extends Fragment {
                     Collections.sort(taskList, (t1, t2) -> t1.getTaskDate().compareTo(t2.getTaskDate()));
                     taskAdapter.notifyDataSetChanged();
                     taskAdapter.applyFilters();
-                    fetchTasksFromFirebase();  // Yeni görev eklendikten sonra verileri tekrar çek
+                    fetchTasksFromFirebase();
+                    notificationManager.scheduleTaskNotification(newTask);
                     Toast.makeText(getContext(), "Görev başarıyla eklendi!", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
@@ -312,7 +339,7 @@ public class TaskFragment extends Fragment {
         db.collection("users").document(userId)
         .collection("tasks")
                 .whereEqualTo("userId", userId)
-                .get()  // addSnapshotListener yerine get() kullanıyoruz
+                .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     taskList.clear();
                     for (DocumentSnapshot document : queryDocumentSnapshots) {

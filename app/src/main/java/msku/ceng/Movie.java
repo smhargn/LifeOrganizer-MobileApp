@@ -1,20 +1,33 @@
 package msku.ceng;
 
+import java.util.ArrayList;
+
 public class Movie {
-    private String title;
+    private String title,id;
     private String releaseDate;
     private String posterPath;
     private String overview;
     private boolean isExpanded;
+    private boolean isWatched;
+
+    public Movie() {
+        //  Firestore
+
+    }
 
 
-    // Constructor, getter ve setter metotları
-    public Movie(String title, String releaseDate,String posterPath,String overview,boolean isExpanded) {
+    public String getId() {return id;}
+
+    public void setId(String id) {this.id = id;}
+
+    public Movie(String id, String title, String releaseDate, String posterPath, String overview, boolean isExpanded) {
+        this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.posterPath = posterPath;
         this.overview = overview;
         this.isExpanded = isExpanded;
+        this.isWatched = false;
     }
 
     public boolean isExpanded() {
@@ -56,4 +69,8 @@ public class Movie {
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
     }
+
+    public boolean isWatched() {return isWatched;}
+
+    public void setWatched(boolean watched) {isWatched = watched;}
 }
