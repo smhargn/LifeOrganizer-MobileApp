@@ -7,6 +7,8 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -55,6 +58,7 @@ public class TaskFragment extends Fragment {
     private Button dateFilterButton,categoryFilterButton;
     private TaskRepository taskRepository;
     private TaskNotificationManager notificationManager;
+    private ImageView emptyStateImage;
 
 
     @Override
@@ -73,7 +77,7 @@ public class TaskFragment extends Fragment {
 
         initializeViews(view);
 
-        // Add alarm permission check
+        // ALARM PERMISSIN DEVICE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager alarmManager = (AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -117,6 +121,7 @@ public class TaskFragment extends Fragment {
         taskRecyclerView = view.findViewById(R.id.taskView);
         dateFilterButton = view.findViewById(R.id.date_filter_button);
         categoryFilterButton = view.findViewById(R.id.category_filter_button);
+        emptyStateImage = view.findViewById(R.id.emptyTask);
 
 
         dateFilterButton.setOnClickListener(v -> showDateFilterDialog());
@@ -208,6 +213,16 @@ public class TaskFragment extends Fragment {
         datePickerDialog.show();
     }
 
+    private void checkEmptyState() {
+        if (taskList.isEmpty()) {
+            taskRecyclerView.setVisibility(View.GONE);
+            emptyStateImage.setVisibility(View.VISIBLE);
+        } else {
+            taskRecyclerView.setVisibility(View.VISIBLE);
+            emptyStateImage.setVisibility(View.GONE);
+        }
+    }
+
     private void updateDateFilterButtonText(Date date, String filterType) {
         if (filterType.equals("all")) {
             dateFilterButton.setText("All");
@@ -232,19 +247,28 @@ public class TaskFragment extends Fragment {
 
 
     private void setupAddTaskDialog(View dialogView) {
+
+
         EditText taskInput = dialogView.findViewById(R.id.task_input);
         Spinner categorySpinner = dialogView.findViewById(R.id.category_spinner);
         Button colorPickerButton = dialogView.findViewById(R.id.color_picker_button);
+        Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+        Button addButton = dialogView.findViewById(R.id.add_button);
 
         colorPickerButton.setOnClickListener(v -> showColorPicker(colorPickerButton));
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
-                .setTitle("Add New Task")
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(dialogView)
-                .setPositiveButton("Add", (dialog, which) -> showDatePickerForNewTask(taskInput, categorySpinner))
-                .setNegativeButton("Cancel", null);
+                .create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        builder.show();
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        addButton.setOnClickListener(v -> {
+            showDatePickerForNewTask(taskInput, categorySpinner);
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void showColorPicker(Button colorPickerButton) {
@@ -298,22 +322,17 @@ public class TaskFragment extends Fragment {
     private void addNewTask(String taskText, String date, String timeStr, String category) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-
         if (user == null) {
             Toast.makeText(getContext(), "Lütfen önce oturum açın.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String userId = user.getUid();
-        String taskId = db.collection("users").document(userId)
-                .collection("tasks").document().getId();
-
+        String taskId = taskRepository.generateTaskId(userId);
 
         Task newTask = new Task(taskId, taskText, date, timeStr, category, selectedColor, userId);
 
-
-        db.collection("users").document(userId)
-        .collection("tasks").document(taskId).set(newTask)
+        taskRepository.addTask(userId, newTask)
                 .addOnSuccessListener(aVoid -> {
                     taskList.add(newTask);
                     Collections.sort(taskList, (t1, t2) -> t1.getTaskDate().compareTo(t2.getTaskDate()));
@@ -336,10 +355,7 @@ public class TaskFragment extends Fragment {
         }
 
         String userId = currentUser.getUid();
-        db.collection("users").document(userId)
-        .collection("tasks")
-                .whereEqualTo("userId", userId)
-                .get()
+        taskRepository.getUserTasks(userId)
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     taskList.clear();
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
@@ -352,6 +368,7 @@ public class TaskFragment extends Fragment {
                     Collections.sort(taskList, (t1, t2) -> t1.getTaskDate().compareTo(t2.getTaskDate()));
                     taskAdapter.notifyDataSetChanged();
                     taskAdapter.applyFilters();
+                    checkEmptyState();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error loading tasks: " + e.getMessage(), Toast.LENGTH_SHORT).show();

@@ -15,11 +15,14 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
     private List<Budget> budgetList;
     private Context context;
     private SimpleDateFormat dateFormat;
+    private OnBudgetClickListener listener;
 
-    public BudgetAdapter(Context context, List<Budget> budgetList) {
+    public BudgetAdapter(Context context, List<Budget> budgetList,OnBudgetClickListener listener) {
         this.context = context;
         this.budgetList = budgetList;
+        this.listener = listener;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
     }
 
     @Override
@@ -46,11 +49,21 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder
             holder.amountText.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
         }
         holder.amountText.setText(amountText);
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onBudgetClick(budget, position);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
         return budgetList.size();
+    }
+
+    public interface OnBudgetClickListener {
+        void onBudgetClick(Budget budget, int position);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

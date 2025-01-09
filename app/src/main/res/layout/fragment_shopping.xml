@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grape6">
+    android:background="@color/background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -72,5 +72,12 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/gradient_shopping_end"
         app:tint="@color/white"/>
+
+    <ImageView
+        android:id="@+id/emptyShopping"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:srcCompat="@drawable/emptyshopping" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

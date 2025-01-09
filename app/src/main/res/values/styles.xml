@@ -12,6 +12,11 @@
         <item name="android:background">@color/grey</item>
     </style>
 
+    <style name="radioBudget">
+        <item name="colorOnSurface">@color/gradient_budget_start</item>
+        <item name="colorPrimary">@color/error_red</item>
+    </style>
+
     <style name="ChipChoiceStyle" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="chipBackgroundColor">@color/chip_background_color</item>
         <item name="android:textColor">@color/chip_text_color</item>

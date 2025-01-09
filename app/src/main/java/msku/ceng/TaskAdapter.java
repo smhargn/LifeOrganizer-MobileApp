@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import msku.ceng.repository.TaskRepository;
+
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     private final List<Task> mTaskList;
     private final List<Task> mFilteredList;
@@ -28,6 +30,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     private Date currentDate = new Date();
     private final FirebaseFirestore db;
     private final String userId;
+    private final TaskRepository taskRepository;
 
     public TaskAdapter(List<Task> tasks, Context context) {
         mTaskList = tasks;
@@ -36,6 +39,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         db = FirebaseFirestore.getInstance();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+        taskRepository = new TaskRepository();
     }
 
     @Override
@@ -64,17 +68,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     private void updateTaskInFirebase(Task task) {
         if (userId != null) {
-            db.collection("users").document(userId)
-                    .collection("tasks").document(task.getId())
-                    .update("completed", task.isCompleted());
+            taskRepository.updateTaskStatus(userId, task.getId(), task.isCompleted());
         }
     }
 
     private void deleteTask(Task task, int position) {
         if (userId != null) {
-            db.collection("users").document(userId)
-                    .collection("tasks").document(task.getId())
-                    .delete()
+            taskRepository.deleteTask(userId, task.getId())
                     .addOnSuccessListener(aVoid -> {
                         mTaskList.remove(task);
                         mFilteredList.remove(position);

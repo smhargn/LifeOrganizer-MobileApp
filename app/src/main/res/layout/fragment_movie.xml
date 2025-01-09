@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -15,54 +15,83 @@
         android:elevation="4dp"
         android:padding="16dp">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/addMovieButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Film Ekle"
-            android:textAllCaps="false"
-            app:cornerRadius="12dp"
-            android:background="@drawable/rounded_button"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="16dp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/popularMoviesButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Popüler Filmler"
+                android:backgroundTint="@color/gradient_movies_start"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:background="@drawable/segmented_background"
             android:padding="2dp"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/watchListButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
+                android:backgroundTint="@color/gradient_movies_start"
                 android:text="Watch List"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:cornerRadius="8dp" />
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/watchedButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
                 android:text="Watched List"
+                android:backgroundTint="@color/gradient_movies_start"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:cornerRadius="8dp" />
         </LinearLayout>
-    </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/moviesRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:padding="8dp"
-        android:clipToPadding="false" />
-</LinearLayout>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:clipToPadding="false" >
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addMovieButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/gradient_movies_start"
+        app:tint="@color/white"/>
+
+    <ImageView
+        android:id="@+id/emptymovie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:srcCompat="@drawable/emptymovies" />
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

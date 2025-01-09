@@ -1,16 +1,19 @@
 package msku.ceng;
 
 import android.app.DatePickerDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+
 import java.text.SimpleDateFormat;
-import android.widget.ArrayAdapter;
+
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -22,12 +25,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,7 +39,6 @@ import java.util.List;
 import java.util.Locale;
 
 import msku.ceng.repository.ShoppingRepository;
-import msku.ceng.repository.TaskRepository;
 
 public class ShoppingFragment extends Fragment implements ShoppingListAdapter.OnListInteractionListener {
     private ShoppingListAdapter listAdapter;
@@ -45,8 +47,10 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     private Spinner dateFilterSpinner;
     private FirebaseFirestore db;
     private Date selectedDate;
+    RecyclerView recyclerView;
     private ShoppingRepository repository;
     private FirebaseAuth auth;
+    private ImageView emptyshopping;
 
     private Button dateFilterButton;
 
@@ -65,25 +69,39 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_shopping, container, false);
 
+
         setupDateFilter(view);
         setupRecyclerView(view);
         setupAddButton(view);
 
 
         fetchShoppingLists();
+        checkEmptyState();
 
         return view;
     }
 
     private void setupRecyclerView(View view) {
-        RecyclerView recyclerView = view.findViewById(R.id.shoppingView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView = view.findViewById(R.id.shoppingView);
+        emptyshopping = view.findViewById(R.id.emptyShopping);
+                recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         listAdapter = new ShoppingListAdapter(filteredLists, requireContext(), this);
         recyclerView.setAdapter(listAdapter);
+        checkEmptyState();
     }
 
     private void setupAddButton(View view) {
         view.findViewById(R.id.addShopping).setOnClickListener(v -> showAddListDialog());
+    }
+
+    private void checkEmptyState() {
+        if (shoppingLists.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            emptyshopping.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyshopping.setVisibility(View.GONE);
+        }
     }
 
     private void showDatePicker() {
@@ -98,7 +116,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                     Calendar selectedDate = Calendar.getInstance();
                     selectedDate.set(selectedYear, selectedMonth, selectedDay);
 
-                    filterListsByDate(selectedDate.getTime()); // Date nesnesi olarak gönder
+                    filterListsByDate(selectedDate.getTime());
                 }, year, month, day);
 
         datePickerDialog.show();
@@ -161,10 +179,10 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         cal.set(Calendar.MILLISECOND, 0);
 
         switch (filterPosition) {
-            case 0: // Tüm Listeler
+            case 0:
                 filteredLists.addAll(shoppingLists);
                 break;
-            case 1: // Bu Hafta
+            case 1:
                 cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
                 Date weekStart = cal.getTime();
                 for (ShoppingList list : shoppingLists) {
@@ -173,7 +191,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                     }
                 }
                 break;
-            case 2: // Bu Ay
+            case 2:
                 cal.set(Calendar.DAY_OF_MONTH, 1);
                 Date monthStart = cal.getTime();
                 for (ShoppingList list : shoppingLists) {
@@ -182,7 +200,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                     }
                 }
                 break;
-            case 3: // Bu Yıl
+            case 3:
                 cal.set(Calendar.DAY_OF_YEAR, 1);
                 Date yearStart = cal.getTime();
                 for (ShoppingList list : shoppingLists) {
@@ -197,14 +215,22 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
 
     private void showAddListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Yeni Alışveriş Listesi");
-
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_list, null);
+
+
+
         EditText listNameInput = dialogView.findViewById(R.id.list_name_input);
         RadioGroup iconGroup = dialogView.findViewById(R.id.icon_group);
+        Button datePickerButton = dialogView.findViewById(R.id.date_picker_button);
+        Button cancelButton = dialogView.findViewById(R.id.btn_cancel);
+        Button createButton = dialogView.findViewById(R.id.btn_create);
 
-        // Date picker button
-        dialogView.findViewById(R.id.date_picker_button).setOnClickListener(v -> {
+
+        AlertDialog dialog = builder.setView(dialogView)
+                .create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        datePickerButton.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     requireContext(),
@@ -213,10 +239,6 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                         selectedCal.set(year, month, dayOfMonth);
                         selectedDate = selectedCal.getTime();
 
-
-
-
-                        Button datePickerButton = dialogView.findViewById(R.id.date_picker_button);
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                         datePickerButton.setText(sdf.format(selectedDate));
                     },
@@ -227,9 +249,9 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
             datePickerDialog.show();
         });
 
-        builder.setView(dialogView);
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-        builder.setPositiveButton("Oluştur", (dialog, which) -> {
+        createButton.setOnClickListener(v -> {
             String listName = listNameInput.getText().toString().trim();
             if (!listName.isEmpty() && selectedDate != null) {
                 int iconResId = getSelectedIcon(iconGroup.getCheckedRadioButtonId());
@@ -237,23 +259,20 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                 if (user != null) {
                     ShoppingList newList = new ShoppingList(listName, iconResId, selectedDate, user.getUid());
 
-
                     repository.addShoppingList(newList)
                             .addOnSuccessListener(aVoid -> {
                                 shoppingLists.add(0, newList);
-                                filterListsByDate(selectedDate); // Tarih filtresi butonuna uygun şekilde değiştirildi
+                                filterListsByDate(selectedDate);
+                                checkEmptyState();
                                 listAdapter.notifyDataSetChanged();
+                                dialog.dismiss();
                             })
-                            .addOnFailureListener(e -> {
-
-                                Toast.makeText(requireContext(), "Liste oluşturulurken hata oluştu.", Toast.LENGTH_SHORT).show();
-                            });
+                            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Liste oluşturulurken hata oluştu.", Toast.LENGTH_SHORT).show());
                 }
             }
         });
 
-        builder.setNegativeButton("İptal", (dialog, which) -> dialog.cancel());
-        builder.show();
+        dialog.show();
     }
 
     private int getSelectedIcon(int checkedId) {
@@ -268,54 +287,45 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     @Override
     public void onAddItemClick(ShoppingList list) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Yeni Ürün Ekle");
-
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_item, null);
+
         EditText itemNameInput = dialogView.findViewById(R.id.item_name_input);
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        Button btnCreate = dialogView.findViewById(R.id.btn_create);
 
-        builder.setView(dialogView);
+        AlertDialog dialog = builder.setView(dialogView)
+                .create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        builder.setPositiveButton("Ekle", (dialog, which) -> {
+        btnCreate.setOnClickListener(v -> {
             String itemName = itemNameInput.getText().toString().trim();
             if (!itemName.isEmpty()) {
                 ShoppingItem newItem = new ShoppingItem(itemName, list.getId());
-                list.addItem(newItem);
 
-                // Firebase'e de kaydet
-                db.collection("users")
-                        .document(auth.getCurrentUser().getUid())
-                        .collection("shopping_lists")
-                        .document(list.getId())
-                        .collection("items")
-                        .document(newItem.getId())
-                        .set(newItem)
+                ShoppingRepository repository = new ShoppingRepository();
+                repository.addItemToShoppingList(list.getId(), newItem)
                         .addOnSuccessListener(aVoid -> {
-
+                            list.addItem(newItem);
                             listAdapter.notifyDataSetChanged();
+                            dialog.dismiss();
                         })
                         .addOnFailureListener(e -> {
-
                             Toast.makeText(requireContext(), "Öğe eklenirken hata oluştu.", Toast.LENGTH_SHORT).show();
                         });
+            } else {
+                Toast.makeText(requireContext(), "Ürün adı boş olamaz!", Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("İptal", (dialog, which) -> dialog.cancel());
-        builder.show();
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
-    @Override
-    public void onDeleteList(ShoppingList list) {
 
-        repository.deleteShoppingList(list.getId())
-                .addOnSuccessListener(aVoid -> {
-                    shoppingLists.remove(list);
-                    listAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> {
-
-                    Toast.makeText(requireContext(), "Liste silinirken hata oluştu.", Toast.LENGTH_SHORT).show();
-                });
+    public void onListChanged() {
+        checkEmptyState();
+        listAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -332,7 +342,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         Log.d("FetchShoppingLists", "Shopping lists fetched successfully.");
 
-                        shoppingLists.clear(); // Eski verileri temizle
+                        shoppingLists.clear();
                         if (queryDocumentSnapshots != null) {
                             Log.d("FetchShoppingLists", "Query document snapshots not null, processing...");
 
@@ -366,6 +376,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
 
 
                                                 listAdapter.notifyDataSetChanged();
+                                                checkEmptyState();
                                             })
                                             .addOnFailureListener(e -> {
                                                 Log.e("FetchShoppingLists", "Failed to fetch shopping list items", e);

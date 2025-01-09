@@ -2,25 +2,47 @@ package msku.ceng;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import msku.ceng.repository.TaskRepository;
 
 public class AddTransactionDialogFragment extends DialogFragment {
     private OnTransactionAddedListener listener;
     private int selectedIconResourceId = -1;
     private EditText dateEdit;
     private Calendar selectedDate;
+    private FirebaseFirestore db;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+
+    }
 
     public interface OnTransactionAddedListener {
         void onTransactionAdded(Budget budget);
@@ -28,10 +50,12 @@ public class AddTransactionDialogFragment extends DialogFragment {
 
     public void setOnTransactionAddedListener(OnTransactionAddedListener listener) {
         this.listener = listener;
+
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_add_transaction, null);
@@ -52,8 +76,11 @@ public class AddTransactionDialogFragment extends DialogFragment {
         setupIconSelection(view);
 
         AlertDialog dialog = builder.setView(view)
-                .setTitle("Yeni İşlem Ekle")
                 .create();
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
 
         saveButton.setOnClickListener(v -> {
             if (selectedIconResourceId == -1) {
@@ -68,9 +95,16 @@ public class AddTransactionDialogFragment extends DialogFragment {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 String date = sdf.format(selectedDate.getTime());
-                String id = String.valueOf(System.currentTimeMillis());
+                String userId = user.getUid();
+                String id = db.collection("users").document(userId)
+                        .collection("budgets").document().getId();
 
                 Budget newBudget = new Budget(id, amount, description, category, date, type, selectedIconResourceId);
+
+                Log.d("AddBudget : ",newBudget.getId());
+
+
+
 
                 if (listener != null) {
                     listener.onTransactionAdded(newBudget);

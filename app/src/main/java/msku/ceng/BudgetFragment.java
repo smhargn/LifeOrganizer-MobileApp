@@ -1,6 +1,10 @@
 package msku.ceng;
 
+import static android.util.Log.*;
+
 import android.app.DatePickerDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,8 +34,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class BudgetFragment extends Fragment implements AddTransactionDialogFragment.OnTransactionAddedListener {
-    // UI Components
+import msku.ceng.repository.BudgetRepository;
+
+public class BudgetFragment extends Fragment implements AddTransactionDialogFragment.OnTransactionAddedListener,BudgetAdapter.OnBudgetClickListener {
     private RecyclerView recyclerView;
     private TextView totalBalanceText;
     private TextView totalIncomeText;
@@ -45,7 +50,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     private PlanAdapter planAdapter;
     private List<Plan> plansList = new ArrayList<>();
 
-    // Data
     private List<Budget> budgetList;
     private List<Budget> filteredList;
     private BudgetAdapter adapter;
@@ -56,6 +60,7 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private BudgetRepository budgetRepository;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,6 +79,47 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+        budgetRepository = new BudgetRepository();
+    }
+
+    @Override
+    public void onBudgetClick(Budget budget, int position) {
+        showEditDialog(budget, position);
+    }
+
+    private void showEditDialog(Budget budget, int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View view = getLayoutInflater().inflate(R.layout.dialog_edit_transaction, null);
+
+        EditText amountEdit = view.findViewById(R.id.editTextAmount);
+        EditText descriptionEdit = view.findViewById(R.id.editTextDescription);
+        EditText categoryEdit = view.findViewById(R.id.editTextCategory);
+        Button deleteButton = view.findViewById(R.id.buttonDelete);
+        Button updateButton = view.findViewById(R.id.buttonUpdate);
+
+        amountEdit.setText(String.valueOf(budget.getAmount()));
+        descriptionEdit.setText(budget.getDescription());
+        categoryEdit.setText(budget.getCategory());
+
+        AlertDialog dialog = builder.setView(view)
+                .create();
+
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        deleteButton.setOnClickListener(v -> {
+            deleteBudget(budget, position);
+            dialog.dismiss();
+        });
+
+        updateButton.setOnClickListener(v -> {
+            updateBudget(budget, position,
+                    Double.parseDouble(amountEdit.getText().toString()),
+                    descriptionEdit.getText().toString(),
+                    categoryEdit.getText().toString());
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void initializeViews(View view) {
@@ -85,12 +131,10 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         totalExpenseText = view.findViewById(R.id.textTotalExpense);
         addTransactionButton = view.findViewById(R.id.buttonAddTransaction);
 
-        // Filter buttons
         buttonFilterAll = view.findViewById(R.id.buttonFilterAll);
         buttonFilterIncome = view.findViewById(R.id.buttonFilterIncome);
         buttonFilterExpense = view.findViewById(R.id.buttonFilterExpense);
 
-        // Period buttons
         buttonFilterDay = view.findViewById(R.id.buttonFilterDay);
         buttonFilterWeek = view.findViewById(R.id.buttonFilterWeek);
         buttonFilterMonth = view.findViewById(R.id.buttonFilterMonth);
@@ -101,21 +145,18 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     }
 
     private void setupRecyclerView() {
-        // Existing budget setup
         budgetList = new ArrayList<>();
         filteredList = new ArrayList<>();
-        adapter = new BudgetAdapter(getContext(), filteredList);
+        adapter = new BudgetAdapter(getContext(), filteredList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Plans setup with fixed height
         planAdapter = new PlanAdapter(getContext(), plansList, this::showPlanDepositDialog);
         LinearLayoutManager plansLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.HORIZONTAL, false);
         plansRecyclerView.setLayoutManager(plansLayoutManager);
         plansRecyclerView.setAdapter(planAdapter);
 
-        // Set a fixed height for the plans RecyclerView to prevent collapsing
         ViewGroup.LayoutParams params = plansRecyclerView.getLayoutParams();
         params.height = getResources().getDimensionPixelSize(R.dimen.plan_card_height);
         plansRecyclerView.setLayoutParams(params);
@@ -124,7 +165,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     private void setupListeners() {
         addTransactionButton.setOnClickListener(v -> showAddTransactionDialog());
 
-        // Type filter listeners
         buttonFilterAll.setOnClickListener(v -> {
             updateTypeFilter("all");
             updateFilterButtonStyles();
@@ -164,7 +204,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     }
 
     private void initializeData() {
-        // Initialize with default filters
         updateTypeFilter("all");
         updatePeriodFilter("day");
         applyFilters();
@@ -188,7 +227,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         buttonFilterExpense.setBackgroundResource(currentFilter.equals("expense") ?
                 R.drawable.filter_button_selected : R.drawable.filter_button_background);
 
-        // Update text colors
         buttonFilterAll.setTextColor(getResources().getColor(currentFilter.equals("all") ?
                 android.R.color.white : R.color.gradient_budget_start));
         buttonFilterIncome.setTextColor(getResources().getColor(currentFilter.equals("income") ?
@@ -223,27 +261,14 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         String userId = auth.getCurrentUser().getUid();
         AddPlanDialogFragment dialog = new AddPlanDialogFragment();
         dialog.setOnPlanAddedListener(plan -> {
-            plansList.add(plan);
-            planAdapter.notifyDataSetChanged();
-
-            String planId = db.collection("users")
-                    .document(userId)
-                    .collection("plans")
-                    .document()
-                    .getId();
-            plan.setId(planId);
-
-            db.collection("users")
-                    .document(userId)
-                    .collection("plans")
-                    .document(planId)
-                    .set(plan)
+            budgetRepository.addPlan(userId, plan)
                     .addOnSuccessListener(aVoid -> {
                         plansList.add(plan);
                         planAdapter.notifyDataSetChanged();
-                        Toast.makeText(getContext(),"Plan Addded",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Plan Added", Toast.LENGTH_SHORT).show();
                     })
-                    .addOnFailureListener(e -> Toast.makeText(getContext(),"Hata",Toast.LENGTH_SHORT).show());
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show());
         });
         dialog.show(getChildFragmentManager(), "AddPlan");
     }
@@ -260,41 +285,65 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         remainingText.setText(String.format(Locale.getDefault(),
                 "Kalan: ₺%.2f", plan.getRemainingAmount()));
 
-
         String userId = auth.getCurrentUser().getUid();
-        builder.setView(view)
-                .setTitle("Para Biriktir")
-                .setPositiveButton("Ekle", (dialog, which) -> {
-                    try {
-                        double amount = Double.parseDouble(amountEdit.getText().toString());
-                        plan.deposit(amount);
+        builder.setView(view);
 
-                        db.collection("users")
-                                .document(userId)
-                                .collection("plans")
-                                .document(plan.getId())
-                                .update("currentAmount", plan.getCurrentAmount(),
-                                        "remainingAmount",plan.getRemainingAmount(),
-                                        "progressPercentage",plan.getProgressPercentage())
-                                .addOnSuccessListener(aVoid -> {
-                                    planAdapter.notifyDataSetChanged();
-                                    Toast.makeText(getContext(),
-                                            "Miktar başarıyla eklendi",
-                                            Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(getContext(),
-                                            "Güncelleme başarısız: " + e.getMessage(),
-                                            Toast.LENGTH_SHORT).show();
-                                });
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(getContext(),
-                                "Lütfen geçerli bir miktar girin",
-                                Toast.LENGTH_SHORT).show();
+        AlertDialog dialog = builder.create();
+
+        Button btnCancel = view.findViewById(R.id.btnCancel);
+        Button btnAdd = view.findViewById(R.id.btnAdd);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        btnAdd.setOnClickListener(v -> {
+            try {
+                double amount = Double.parseDouble(amountEdit.getText().toString());
+                d("BudgetFragmentS : ", String.valueOf(amount));
+
+                double totalIncome = 0;
+                double totalExpense = 0;
+
+                for (Budget budget : budgetList) {
+                    if (budget.getType().equals("income")) {
+                        totalIncome += budget.getAmount();
+                    } else {
+                        totalExpense += budget.getAmount();
                     }
-                })
-                .setNegativeButton("İptal", null)
-                .show();
+                }
+
+                if (amount > totalIncome - totalExpense) {
+                    Toast.makeText(getContext(),
+                            "No Have Money: Higher than your balance",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                plan.deposit(amount);
+
+                budgetRepository.depositToPlan(userId, plan, amount)
+                        .addOnSuccessListener(aVoid -> {
+                            planAdapter.notifyDataSetChanged();
+                            Toast.makeText(getContext(),
+                                    "Miktar başarıyla eklendi",
+                                    Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        })
+
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(),
+                                    "Güncelleme başarısız: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        });
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(),
+                        "Lütfen geçerli bir miktar girin",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        dialog.show();
     }
 
     private void showAddTransactionDialog() {
@@ -377,18 +426,15 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     @Override
     public void onTransactionAdded(Budget budget) {
         String userId = auth.getCurrentUser().getUid();
-        db.collection("users")
-                .document(userId)
-                .collection("budgets")
-                .add(budget)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Bütçe başarıyla eklendi!", Toast.LENGTH_SHORT).show();
+        budgetRepository.addBudget(userId, budget)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Budget added successfully!", Toast.LENGTH_SHORT).show();
                     budgetList.add(budget);
                     applyFilters();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Bütçe eklenirken hata oluştu.", Toast.LENGTH_SHORT).show();
-                    Log.e("Firestore", "Hata: ", e);
+                    Toast.makeText(getContext(), "Error adding budget.", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error: ", e);
                 });
 
         if (planAdapter != null && !plansList.isEmpty()) {
@@ -396,13 +442,36 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         }
     }
 
+    private void deleteBudget(Budget budget, int position) {
+        String userId = auth.getCurrentUser().getUid();
+        budgetRepository.deleteBudget(userId, budget.getId())
+                .addOnSuccessListener(aVoid -> {
+                    budgetList.remove(budget);
+                    applyFilters();
+                    Toast.makeText(getContext(), "Transaction deleted", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error deleting transaction", Toast.LENGTH_SHORT).show());
+    }
+
+    private void updateBudget(Budget budget, int position, double amount, String description, String category) {
+        String userId = auth.getCurrentUser().getUid();
+        budget.setAmount(amount);
+        budget.setDescription(description);
+        budget.setCategory(category);
+
+        budgetRepository.updateBudget(userId, budget)
+                .addOnSuccessListener(aVoid -> {
+                    applyFilters();
+                    Toast.makeText(getContext(), "Transaction updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error updating transaction", Toast.LENGTH_SHORT).show());
+    }
+
     private void fetchBudgetsFromFirestore() {
         String userId = auth.getCurrentUser().getUid();
-
-        db.collection("users")
-                .document(userId)
-                .collection("budgets")
-                .get()
+        budgetRepository.getUserBudgets(userId)
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     budgetList.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
@@ -412,17 +481,14 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
                     applyFilters();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Veriler alınamadı.", Toast.LENGTH_SHORT).show();
-                    Log.e("Firestore", "Hata: ", e);
+                    Toast.makeText(getContext(), "Could not fetch data.", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error: ", e);
                 });
     }
 
     private void fetchPlansFromFirestore() {
         String userId = auth.getCurrentUser().getUid();
-        db.collection("users")
-                .document(userId)
-                .collection("plans")
-                .get()
+        budgetRepository.getUserPlans(userId)
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     plansList.clear();
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
@@ -434,8 +500,8 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
                     }
                     planAdapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(),"Error",Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show());
     }
-
 
 }

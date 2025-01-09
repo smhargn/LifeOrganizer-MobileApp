@@ -1,17 +1,20 @@
 package msku.ceng;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.annotations.Nullable;
@@ -21,17 +24,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import msku.ceng.repository.MovieRepository;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MovieFragment extends Fragment implements MovieSearchFragment.MovieSelectionListener {
     private RecyclerView moviesRecyclerView;
     private SelectedMovieAdapter movieAdapter;
     private List<MovieSearchResponse.Movie> watchList = new ArrayList<>();
     private List<MovieSearchResponse.Movie> watchedMovies = new ArrayList<>();
-    private Button addMovieButton;
     private Button watchListButton;
     private Button watchedButton;
+    private FloatingActionButton addMovieButton;
+    private Button popularMoviesButton;
     private boolean showingWatchList = true;
     private MovieRepository movieRepository;
+    private ImageView emptymovies;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,13 +60,24 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         addMovieButton = view.findViewById(R.id.addMovieButton);
         watchListButton = view.findViewById(R.id.watchListButton);
         watchedButton = view.findViewById(R.id.watchedButton);
+        popularMoviesButton = view.findViewById(R.id.popularMoviesButton);
+        emptymovies = view.findViewById(R.id.emptymovie);
 
-        addMovieButton.setOnClickListener(v -> showMovieSearchFragment());
-        watchListButton.setOnClickListener(v -> showWatchList());
-        watchedButton.setOnClickListener(v -> showWatchedMovies());
+        if (addMovieButton != null) {
+            addMovieButton.setOnClickListener(v -> showMovieSearchFragment());
+        }
+        if (popularMoviesButton != null) {
+            popularMoviesButton.setOnClickListener(v -> showPopularMovies());
+        }
+        if (watchListButton != null) {
+            watchListButton.setOnClickListener(v -> showWatchList());
+        }
+        if (watchedButton != null) {
+            watchedButton.setOnClickListener(v -> showWatchedMovies());
+        }
         fetchMovies();
-
         showWatchList();
+        checkEmptyState();
         return view;
     }
 
@@ -65,18 +85,34 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         showingWatchList = true;
         movieAdapter.updateMovies(new ArrayList<>(watchList));
         updateButtonStyles();
+        checkEmptyState();
     }
 
     private void showWatchedMovies() {
         showingWatchList = false;
         movieAdapter.updateMovies(new ArrayList<>(watchedMovies));
         updateButtonStyles();
+        checkEmptyState();
     }
 
     private void updateButtonStyles() {
         watchListButton.setEnabled(!showingWatchList);
         watchedButton.setEnabled(showingWatchList);
     }
+
+    private void checkEmptyState() {
+        List<MovieSearchResponse.Movie> currentList = showingWatchList ? watchList : watchedMovies;
+
+        if (currentList.isEmpty()) {
+            moviesRecyclerView.setVisibility(View.GONE);
+            emptymovies.setVisibility(View.VISIBLE);
+        } else {
+            moviesRecyclerView.setVisibility(View.VISIBLE);
+            emptymovies.setVisibility(View.GONE);
+        }
+    }
+
+
 
     private void onMovieWatchedStatusChanged(MovieSearchResponse.Movie movie, boolean isWatched) {
         if (isWatched) {
@@ -192,4 +228,21 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         movie.setWatched(movieData.isWatched());
         return movie;
     }
+
+    private void showPopularMovies() {
+        Log.d("showPopularMovies", "Method called");
+        MovieSearchFragment searchFragment = new MovieSearchFragment();
+        Bundle args = new Bundle();
+        args.putBoolean("isPopularMovies", true);
+        searchFragment.setArguments(args);
+        searchFragment.setMovieSelectionListener(this);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, searchFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+
 }
