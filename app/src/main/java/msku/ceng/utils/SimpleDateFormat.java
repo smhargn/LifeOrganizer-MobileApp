@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.utils;
 
 import java.util.Locale;
 

@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -6,10 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,12 +23,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import msku.ceng.MovieSearchResponse;
+import msku.ceng.R;
+import msku.ceng.adapter.SelectedMovieAdapter;
+import msku.ceng.model.Movie;
 import msku.ceng.repository.MovieRepository;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-public class MovieFragment extends Fragment implements MovieSearchFragment.MovieSelectionListener {
+public class MovieFragment extends Fragment implements MovieSearchFragment.MovieSelectionListener,
+        SelectedMovieAdapter.OnMovieWatchedListener {
     private RecyclerView moviesRecyclerView;
     private SelectedMovieAdapter movieAdapter;
     private List<MovieSearchResponse.Movie> watchList = new ArrayList<>();
@@ -42,6 +44,8 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
     private ImageView emptymovies;
 
 
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,10 +57,9 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         View view = inflater.inflate(R.layout.fragment_movie, container, false);
 
         moviesRecyclerView = view.findViewById(R.id.moviesRecyclerView);
-        movieAdapter = new SelectedMovieAdapter(new ArrayList<>(), this::onMovieWatchedStatusChanged);
+        movieAdapter = new SelectedMovieAdapter(new ArrayList<>(), this);
         moviesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         moviesRecyclerView.setAdapter(movieAdapter);
-
         addMovieButton = view.findViewById(R.id.addMovieButton);
         watchListButton = view.findViewById(R.id.watchListButton);
         watchedButton = view.findViewById(R.id.watchedButton);
@@ -79,6 +82,17 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
         showWatchList();
         checkEmptyState();
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        fetchMovies();
+    }
+
+    @Override
+    public void onMovieDeleted(MovieSearchResponse.Movie movie) {
+        handleMovieDeletion(movie);
     }
 
     private void showWatchList() {
@@ -114,7 +128,8 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
 
 
 
-    private void onMovieWatchedStatusChanged(MovieSearchResponse.Movie movie, boolean isWatched) {
+    @Override
+    public void onMovieWatchedStatusChanged(MovieSearchResponse.Movie movie, boolean isWatched) {
         if (isWatched) {
             watchList.remove(movie);
             if (!watchedMovies.contains(movie)) {
@@ -127,12 +142,27 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
             }
         }
 
-        // Update the current view
         if (showingWatchList) {
             movieAdapter.updateMovies(new ArrayList<>(watchList));
         } else {
             movieAdapter.updateMovies(new ArrayList<>(watchedMovies));
         }
+        checkEmptyState();
+    }
+
+    private void updateCurrentView() {
+        if (showingWatchList) {
+            movieAdapter.updateMovies(new ArrayList<>(watchList));
+        } else {
+            movieAdapter.updateMovies(new ArrayList<>(watchedMovies));
+        }
+        checkEmptyState();
+    }
+
+    private void handleMovieDeletion(MovieSearchResponse.Movie movie) {
+        watchList.remove(movie);
+        watchedMovies.remove(movie);
+        updateCurrentView();
     }
 
     private void showMovieSearchFragment() {
@@ -203,11 +233,8 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
                         }
                     }
 
-                    if (showingWatchList) {
-                        movieAdapter.updateMovies(new ArrayList<>(watchList));
-                    } else {
-                        movieAdapter.updateMovies(new ArrayList<>(watchedMovies));
-                    }
+                    showWatchList();
+                    checkEmptyState();
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Error fetching movies: " + e.getMessage(),
@@ -216,7 +243,6 @@ public class MovieFragment extends Fragment implements MovieSearchFragment.Movie
     }
 
     private MovieSearchResponse.Movie convertToMovieResponse(Movie movieData) {
-        // Convert MovieData to MovieSearchResponse.Movie
         MovieSearchResponse.Movie movie = new MovieSearchResponse.Movie(
                 movieData.getId(),
                 movieData.getTitle(),

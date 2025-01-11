@@ -1,6 +1,5 @@
-package msku.ceng;
+package msku.ceng.adapter;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +18,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import msku.ceng.MovieSearchResponse;
+import msku.ceng.R;
 import msku.ceng.repository.MovieRepository;
 
 public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdapter.SelectedMovieViewHolder> {
@@ -28,7 +29,7 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
 
     public interface OnMovieWatchedListener {
         void onMovieWatchedStatusChanged(MovieSearchResponse.Movie movie, boolean isWatched);
-
+        void onMovieDeleted(MovieSearchResponse.Movie movie);
     }
 
     public SelectedMovieAdapter(List<MovieSearchResponse.Movie> movies, OnMovieWatchedListener listener) {
@@ -70,7 +71,6 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
                         }
                     })
                     .addOnFailureListener(e -> {
-                        // Revert checkbox state on failure
                         holder.watchedCheckbox.setChecked(!isChecked);
                         Toast.makeText(holder.itemView.getContext(),
                                 "Failed to update status: " + e.getMessage(),
@@ -82,29 +82,20 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
 
         holder.deleteButton.setOnClickListener(v -> {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (currentUser == null) {
-                Log.d("DeleteMovie", "Current user is null. Exiting.");
-                return;
-            }
+            if (currentUser == null) return;
 
             String userId = currentUser.getUid();
-            Log.d("DeleteMovie", "Current user ID: " + userId);
-
             MovieSearchResponse.Movie movieToDelete = movies.get(holder.getAdapterPosition());
-            Log.d("DeleteMovie", "Movie to delete: " + movieToDelete.getId());
 
             movieRepository.deleteMovie(userId, movieToDelete.getId())
                     .addOnSuccessListener(aVoid -> {
-                        Log.d("DeleteMovie", "Movie deletion successful.");
                         int adapterPosition = holder.getAdapterPosition();
                         if (adapterPosition != RecyclerView.NO_POSITION) {
-                            Log.d("DeleteMovie", "Removing movie from position: " + adapterPosition);
                             movies.remove(adapterPosition);
                             notifyItemRemoved(adapterPosition);
 
                             if (watchedListener != null) {
-                                Log.d("DeleteMovie", "Calling watchedListener with status change.");
-                                watchedListener.onMovieWatchedStatusChanged(movieToDelete, false);
+                                watchedListener.onMovieDeleted(movieToDelete);
                             }
 
                             Toast.makeText(holder.itemView.getContext(),
@@ -112,7 +103,6 @@ public class SelectedMovieAdapter extends RecyclerView.Adapter<SelectedMovieAdap
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.d("DeleteMovie", "Failed to delete movie: " + e.getMessage());
                         Toast.makeText(holder.itemView.getContext(),
                                 "Failed to delete movie: " + e.getMessage(),
                                 Toast.LENGTH_SHORT).show();

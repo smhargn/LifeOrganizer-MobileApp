@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.model;
 
 public class Budget {
     private String id;

@@ -1,6 +1,4 @@
-package msku.ceng;
-
-import static androidx.core.content.ContextCompat.getSystemService;
+package msku.ceng.view;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
@@ -15,11 +13,14 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,8 +34,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import msku.ceng.CalendarBottomSheetDialog;
+import msku.ceng.R;
+import msku.ceng.adapter.TaskAdapter;
+import msku.ceng.model.Task;
 import msku.ceng.notification.TaskNotificationManager;
 import msku.ceng.repository.TaskRepository;
 import yuku.ambilwarna.AmbilWarnaDialog;
@@ -45,9 +49,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import android.app.AlarmManager;
-import android.os.Build;
-import android.provider.Settings;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TaskFragment extends Fragment {
     private RecyclerView taskRecyclerView;
@@ -145,52 +148,126 @@ public class TaskFragment extends Fragment {
     private void showDateFilterDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_date_filter, null);
         RadioGroup radioGroup = dialogView.findViewById(R.id.radio_group_filter);
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        Button btnApply = dialogView.findViewById(R.id.btn_apply);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Filter by Date")
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setView(dialogView)
-                .setPositiveButton("Apply", (dialog, which) -> {
-                    int selectedId = radioGroup.getCheckedRadioButtonId();
-                    String filterType = "all";
-                    Date selectedDate = new Date();
+                .create();
 
-                    if (selectedId == R.id.radio_today) {
-                        filterType = "today";
-                        dateFilterButton.setText("Today");
-                    } else if (selectedId == R.id.radio_week) {
-                        filterType = "week";
-                        dateFilterButton.setText("This Week");
-                    } else if (selectedId == R.id.radio_month) {
-                        filterType = "month";
-                        dateFilterButton.setText("This Month");
-                    } else if (selectedId == R.id.radio_choose_date) {
-                        showDatePicker();
-                        return;
-                    } else {
-                        dateFilterButton.setText("All");
-                    }
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-                    taskAdapter.filterByDate(selectedDate, filterType);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        btnApply.setOnClickListener(v -> {
+            int selectedId = radioGroup.getCheckedRadioButtonId();
+            String filterType = "all";
+            Date selectedDate = new Date();
+
+            if (selectedId == R.id.radio_today) {
+                filterType = "today";
+                dateFilterButton.setText("Today");
+            } else if (selectedId == R.id.radio_week) {
+                filterType = "week";
+                dateFilterButton.setText("This Week");
+            } else if (selectedId == R.id.radio_month) {
+                filterType = "month";
+                dateFilterButton.setText("This Month");
+            } else if (selectedId == R.id.radio_choose_date) {
+                dialog.dismiss();
+                showCalendarForFilter();
+                return;
+            } else {
+                dateFilterButton.setText("All");
+            }
+
+            taskAdapter.filterByDate(selectedDate, filterType);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void showCalendarForFilter() {
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+        calendarDialog.setOnDateSelectedListener(selectedDate -> {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            dateFilterButton.setText(sdf.format(selectedDate));
+            taskAdapter.filterByDate(selectedDate, "specific");
+            calendarDialog.dismiss();
+        });
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            taskRepository.getUserTasks(currentUser.getUid())
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        Map<Date, List<String>> taskMap = new HashMap<>();
+                        for (DocumentSnapshot document : queryDocumentSnapshots) {
+                            Task task = document.toObject(Task.class);
+                            if (task != null) {
+                                try {
+                                    SimpleDateFormat parser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                                    Date taskDate = parser.parse(task.getTaskDate());
+                                    List<String> tasksForDate = taskMap.getOrDefault(taskDate, new ArrayList<>());
+                                    tasksForDate.add(task.getTaskText());
+                                    taskMap.put(taskDate, tasksForDate);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        calendarDialog.setTaskMap(taskMap);
+                    });
+        }
+
+        calendarDialog.show();
     }
 
     private void showCategoryFilterDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_category_filter, null);
+        ListView categoryList = dialogView.findViewById(R.id.category_list);
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        Button btnApply = dialogView.findViewById(R.id.btn_apply);
+
         String[] categories = getResources().getStringArray(R.array.task_categories);
         String[] allCategories = new String[categories.length + 1];
         allCategories[0] = "All Categories";
         System.arraycopy(categories, 0, allCategories, 1, categories.length);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Filter by Category")
-                .setItems(allCategories, (dialog, which) -> {
-                    String selectedCategory = allCategories[which];
-                    categoryFilterButton.setText(selectedCategory);
-                    taskAdapter.filterByCategory(selectedCategory);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_single_choice, allCategories) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                textView.setTextColor(Color.parseColor("#495057"));
+
+                //RadioButton radioButton = (RadioButton) view.findViewById(R.id.radio_button);
+                //radioButton.setButtonTintList(ContextCompat.getColorStateList(getContext(),R.color.radio_button_color));
+
+                return view;
+            }
+        };
+
+        categoryList.setAdapter(adapter);
+        categoryList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnApply.setOnClickListener(v -> {
+            int position = categoryList.getCheckedItemPosition();
+            if (position != ListView.INVALID_POSITION) {
+                String selectedCategory = allCategories[position];
+                categoryFilterButton.setText(selectedCategory);
+                taskAdapter.filterByCategory(selectedCategory);
+            }
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void showDatePicker() {
@@ -290,18 +367,38 @@ public class TaskFragment extends Fragment {
         String taskText = taskInput.getText().toString();
         String category = categorySpinner.getSelectedItem().toString();
 
-        Calendar calendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                requireContext(),
-                (view, year, month, dayOfMonth) -> {
-                    String date = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, month + 1, year);
-                    showTimePickerForNewTask(taskText, date, category);
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.show();
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+        calendarDialog.setOnDateSelectedListener(selectedDate -> {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String date = sdf.format(selectedDate);
+            showTimePickerForNewTask(taskText, date, category);
+            calendarDialog.dismiss();
+        });
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            taskRepository.getUserTasks(currentUser.getUid())
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        Map<Date, List<String>> taskMap = new HashMap<>();
+                        for (DocumentSnapshot document : queryDocumentSnapshots) {
+                            Task task = document.toObject(Task.class);
+                            if (task != null) {
+                                try {
+                                    SimpleDateFormat parser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                                    Date taskDate = parser.parse(task.getTaskDate());
+                                    List<String> tasksForDate = taskMap.getOrDefault(taskDate, new ArrayList<>());
+                                    tasksForDate.add(task.getTaskText());
+                                    taskMap.put(taskDate, tasksForDate);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        calendarDialog.setTaskMap(taskMap);
+                    });
+        }
+
+        calendarDialog.show();
     }
 
     private void showTimePickerForNewTask(String taskText, String date, String category) {

@@ -1,8 +1,7 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import static android.util.Log.*;
 
-import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -34,9 +33,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import msku.ceng.R;
+import msku.ceng.adapter.BudgetAdapter;
+import msku.ceng.adapter.PlanAdapter;
+import msku.ceng.model.Budget;
+import msku.ceng.model.Plan;
 import msku.ceng.repository.BudgetRepository;
 
-public class BudgetFragment extends Fragment implements AddTransactionDialogFragment.OnTransactionAddedListener,BudgetAdapter.OnBudgetClickListener {
+public class BudgetFragment extends Fragment implements AddTransactionDialogFragment.OnTransactionAddedListener, BudgetAdapter.OnBudgetClickListener {
     private RecyclerView recyclerView;
     private TextView totalBalanceText;
     private TextView totalIncomeText;

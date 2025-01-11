@@ -1,9 +1,8 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -17,6 +16,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.squareup.picasso.Picasso;
+
+import msku.ceng.R;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText inputName, inputEmail, inputPassword;

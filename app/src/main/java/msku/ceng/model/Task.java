@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.model;
 
 import com.google.firebase.firestore.Exclude;
 import java.text.ParseException;

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/orange2"
-    tools:context=".MainActivity">
+    tools:context=".view.MainActivity">
 
     <ImageView
         android:id="@+id/imageView7"
@@ -61,7 +61,6 @@
         android:gravity="center"
         android:hint="Enter Your Password"
         android:inputType="textPassword"
-
         android:padding="8dp"
         android:textColor="@color/black"
         android:textColorHint="#020202"
@@ -84,7 +83,7 @@
         app:layout_constraintVertical_bias="0.982" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/forgotButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="152dp"
@@ -99,7 +98,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="36dp"
-
         android:backgroundTint="#2c3e50"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
@@ -107,7 +105,7 @@
         android:textColor="#FFFBFB"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4"
+        app:layout_constraintTop_toBottomOf="@+id/forgotButton"
         app:strokeColor="#7f8c8d"
         app:strokeWidth="1dp" />
 

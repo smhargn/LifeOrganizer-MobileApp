@@ -1,9 +1,8 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,8 +24,10 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.squareup.picasso.Picasso;
 
+import msku.ceng.R;
+
 public class MainActivity extends AppCompatActivity {
-    private TextView registerButton,googleSignInButton;
+    private TextView registerButton,googleSignInButton,forgotButton;
     private Button loginButton;
     private EditText editTextEmail, editTextPassword;
     private FirebaseAuth mAuth;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         editTextPassword = findViewById(R.id.editpassword);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.textView5);
+        forgotButton = findViewById(R.id.forgotButton);
 
         ImageView imageView = findViewById(R.id.imageView7);
         Picasso.get()
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 .into(imageView);
 
         loginButton.setOnClickListener(view -> loginUser());
+        forgotButton.setOnClickListener(view -> resetPassword());
 
         // Google Sign-In için yapılandırma
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -160,5 +163,10 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void resetPassword(){
+        Intent forgotPasswordPage = new Intent(MainActivity.this, ForgotPasswordActivity.class);
+        startActivity(forgotPasswordPage);
     }
 }

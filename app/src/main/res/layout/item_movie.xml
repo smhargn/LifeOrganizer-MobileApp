@@ -57,11 +57,13 @@
                 android:id="@+id/watchedCheckbox"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:backgroundTint="@color/black"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="8dp"
-                android:button="@mipmap/confirm_icon_foreground"
-                android:checked="false"
-                android:textColor="#000000" />
+                android:buttonTint="@color/black"
+                android:button="@mipmap/movie_click_icon_foreground"
+                android:theme="@style/checkBoxStyle"
+                android:checked="false" />
 
             <ImageButton
                 android:id="@+id/deleteButton"
@@ -69,8 +71,7 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@mipmap/delete_icon_foreground"
-                android:tint="#FF5252" />
+                android:src="@mipmap/task_delete_icon_foreground" />
         </LinearLayout>
 
         <LinearLayout

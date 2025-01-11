@@ -1,6 +1,5 @@
-package msku.ceng;
+package msku.ceng.view;
 
-import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -25,19 +24,26 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import msku.ceng.CalendarBottomSheetDialog;
+import msku.ceng.R;
+import msku.ceng.adapter.ShoppingListAdapter;
+import msku.ceng.model.ShoppingItem;
+import msku.ceng.model.ShoppingList;
 import msku.ceng.repository.ShoppingRepository;
 
 public class ShoppingFragment extends Fragment implements ShoppingListAdapter.OnListInteractionListener {
@@ -51,8 +57,11 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     private ShoppingRepository repository;
     private FirebaseAuth auth;
     private ImageView emptyshopping;
+    private Date selectedDateForNewList = null;
 
     private Button dateFilterButton;
+    private Map<Date, List<String>> taskMap;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +71,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         filteredLists = new ArrayList<>();
         repository = new ShoppingRepository();
         auth = FirebaseAuth.getInstance();
+        taskMap = new HashMap<>();
     }
 
     @Nullable
@@ -69,17 +79,46 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_shopping, container, false);
 
-
         setupDateFilter(view);
         setupRecyclerView(view);
         setupAddButton(view);
 
-
         fetchShoppingLists();
         checkEmptyState();
 
+        Button openCalendarButton = view.findViewById(R.id.date_filter_button);
+        openCalendarButton.setOnClickListener(v -> openCalendar());
+
         return view;
     }
+
+    private void openCalendar() {
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+        taskMap = new HashMap<>();
+        convertShoppingListsToTaskMap();
+        calendarDialog.setTaskMap(taskMap);
+        calendarDialog.setOnDateSelectedListener(selectedDate -> {
+            filterListsByDate(selectedDate);
+            Toast.makeText(requireContext(), "Seçilen Tarih: " + selectedDate, Toast.LENGTH_SHORT).show();
+        });
+        calendarDialog.show();
+    }
+
+    private void openCalendarForPickDate() {
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+
+        taskMap = new HashMap<>();
+        convertShoppingListsToTaskMap();
+        calendarDialog.setTaskMap(taskMap);
+        calendarDialog.setOnDateSelectedListener(selectedDate -> {
+            selectedDateForNewList = selectedDate;
+
+            showAddListDialog(selectedDateForNewList);
+        });
+
+        calendarDialog.show();
+    }
+
 
     private void setupRecyclerView(View view) {
         recyclerView = view.findViewById(R.id.shoppingView);
@@ -91,7 +130,8 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     }
 
     private void setupAddButton(View view) {
-        view.findViewById(R.id.addShopping).setOnClickListener(v -> showAddListDialog());
+        view.findViewById(R.id.addShopping).setOnClickListener(v -> showAddListDialog(new Date()));
+
     }
 
     private void checkEmptyState() {
@@ -105,21 +145,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     }
 
     private void showDatePicker() {
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-
-                    Calendar selectedDate = Calendar.getInstance();
-                    selectedDate.set(selectedYear, selectedMonth, selectedDay);
-
-                    filterListsByDate(selectedDate.getTime());
-                }, year, month, day);
-
-        datePickerDialog.show();
+        openCalendarForPickDate();
     }
 
     private void filterListsByDate(Date selectedDate) {
@@ -166,8 +192,28 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
 
     private void setupDateFilter(View view) {
         dateFilterButton = view.findViewById(R.id.date_filter_button);
-
         dateFilterButton.setOnClickListener(v -> showDatePicker());
+    }
+
+    private void convertShoppingListsToTaskMap() {
+        taskMap.clear();
+        for (ShoppingList shoppingList : shoppingLists) {
+            if (shoppingList.getCreatedDate() != null) {
+                Date listDate = Date.from(shoppingList.getCreatedDate()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant());
+
+                List<String> taskNames = new ArrayList<>();
+                for (ShoppingItem item : shoppingList.getItems()) {
+                    taskNames.add(item.getName());
+                }
+
+                taskMap.putIfAbsent(listDate, new ArrayList<>());
+                taskMap.get(listDate).addAll(taskNames);
+            }
+        }
+        Log.d("TaskMap", "Task map updated: " + taskMap.toString());
     }
 
     private void filterLists(int filterPosition) {
@@ -213,56 +259,48 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         listAdapter.notifyDataSetChanged();
     }
 
-    private void showAddListDialog() {
+    private void showAddListDialog(Date selectedDate) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_list, null);
-
-
-
         EditText listNameInput = dialogView.findViewById(R.id.list_name_input);
         RadioGroup iconGroup = dialogView.findViewById(R.id.icon_group);
         Button datePickerButton = dialogView.findViewById(R.id.date_picker_button);
         Button cancelButton = dialogView.findViewById(R.id.btn_cancel);
         Button createButton = dialogView.findViewById(R.id.btn_create);
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        datePickerButton.setText(sdf.format(selectedDate));
 
         AlertDialog dialog = builder.setView(dialogView)
                 .create();
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         datePickerButton.setOnClickListener(v -> {
-            Calendar calendar = Calendar.getInstance();
-            DatePickerDialog datePickerDialog = new DatePickerDialog(
-                    requireContext(),
-                    (view, year, month, dayOfMonth) -> {
-                        Calendar selectedCal = Calendar.getInstance();
-                        selectedCal.set(year, month, dayOfMonth);
-                        selectedDate = selectedCal.getTime();
-
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                        datePickerButton.setText(sdf.format(selectedDate));
-                    },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-            );
-            datePickerDialog.show();
+            CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+            convertShoppingListsToTaskMap();
+            calendarDialog.setTaskMap(taskMap);
+            calendarDialog.setOnDateSelectedListener(newDate -> {
+                selectedDateForNewList = newDate;
+                datePickerButton.setText(sdf.format(newDate));
+                calendarDialog.dismiss();
+            });
+            calendarDialog.show();
         });
 
         cancelButton.setOnClickListener(v -> dialog.dismiss());
 
         createButton.setOnClickListener(v -> {
             String listName = listNameInput.getText().toString().trim();
-            if (!listName.isEmpty() && selectedDate != null) {
+            if (!listName.isEmpty() && selectedDateForNewList != null) {
                 int iconResId = getSelectedIcon(iconGroup.getCheckedRadioButtonId());
                 FirebaseUser user = auth.getCurrentUser();
                 if (user != null) {
-                    ShoppingList newList = new ShoppingList(listName, iconResId, selectedDate, user.getUid());
+                    ShoppingList newList = new ShoppingList(listName, iconResId, selectedDateForNewList, user.getUid());
 
                     repository.addShoppingList(newList)
                             .addOnSuccessListener(aVoid -> {
                                 shoppingLists.add(0, newList);
-                                filterListsByDate(selectedDate);
+                                filterListsByDate(selectedDateForNewList);
                                 checkEmptyState();
                                 listAdapter.notifyDataSetChanged();
                                 dialog.dismiss();
@@ -373,6 +411,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
                                                 Date selectedDate = new Date();
 
                                                 filterListsByDate(selectedDate);
+                                                convertShoppingListsToTaskMap();
 
 
                                                 listAdapter.notifyDataSetChanged();

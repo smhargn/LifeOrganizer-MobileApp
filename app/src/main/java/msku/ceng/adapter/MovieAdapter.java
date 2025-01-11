@@ -1,17 +1,19 @@
-package msku.ceng;
+package msku.ceng.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import msku.ceng.MovieSearchResponse;
+import msku.ceng.R;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private List<MovieSearchResponse.Movie> movieList;
@@ -71,10 +73,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         return movieList.size();
     }
 
+
+
     static class MovieViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, releaseDateTextView, summaryTextView;
         ImageView posterImageView;
-        Button selectButton;
+        ImageButton selectButton;
         View expandedView;
 
         MovieViewHolder(View itemView) {

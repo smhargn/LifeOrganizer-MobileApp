@@ -2,6 +2,8 @@ package msku.ceng;
 
 import java.util.List;
 
+import msku.ceng.model.Movie;
+
 public class MovieResponse {
     private List<Movie> Search;
 

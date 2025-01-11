@@ -56,13 +56,13 @@
 
         <ImageButton
             android:id="@+id/delete_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="4dp"
-            app:tint="@color/error_red"
-            android:src="@mipmap/delete_icon_foreground" />
+            android:src="@mipmap/task_delete_icon_foreground"
+             />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -1,6 +1,4 @@
-package msku.ceng;
-
-import java.util.ArrayList;
+package msku.ceng.model;
 
 public class Movie {
     private String title,id;

@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+
+import msku.ceng.R;
+import msku.ceng.model.Shopping;
 
 public class ShoppingAdapter extends RecyclerView.Adapter<ShoppingAdapter.ViewHolder> {
     private List<Shopping> shoppingList;

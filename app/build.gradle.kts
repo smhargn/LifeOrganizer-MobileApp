@@ -28,6 +28,7 @@ android {
     }
 
     compileOptions {
+
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -49,13 +50,17 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
 
+    implementation("com.kizitonwose.calendar:view:2.6.1")
+
+    // The compose calendar library for Android
+    implementation("com.kizitonwose.calendar:compose:2.6.1")
+
     implementation("com.google.android.gms:play-services-auth:20.3.0")
 
-    implementation("com.google.firebase:firebase-firestore:24.9.0") // Firestore için
-    implementation("com.google.firebase:firebase-database:20.3.0")  // Realtime Database için
+    implementation("com.google.firebase:firebase-firestore:24.9.0")
+    implementation("com.google.firebase:firebase-database:20.3.0")
 
 
-    // Diğer bağımlılıklar
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

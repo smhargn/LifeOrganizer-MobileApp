@@ -1,12 +1,12 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import android.os.Bundle;
-import android.view.MenuItem;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
+
+import msku.ceng.R;
 
 public class Homepage extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;

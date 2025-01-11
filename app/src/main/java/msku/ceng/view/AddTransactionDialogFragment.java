@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.view;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -23,12 +23,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
-import msku.ceng.repository.TaskRepository;
+import msku.ceng.R;
+import msku.ceng.model.Budget;
 
 public class AddTransactionDialogFragment extends DialogFragment {
     private OnTransactionAddedListener listener;

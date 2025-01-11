@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+
+import msku.ceng.model.Budget;
+import msku.ceng.R;
 
 public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.ViewHolder> {
     private List<Budget> budgetList;

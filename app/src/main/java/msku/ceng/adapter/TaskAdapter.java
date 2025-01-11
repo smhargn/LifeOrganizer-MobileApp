@@ -1,4 +1,4 @@
-package msku.ceng;
+package msku.ceng.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import msku.ceng.R;
+import msku.ceng.model.Task;
 import msku.ceng.repository.TaskRepository;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {

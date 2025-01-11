@@ -51,14 +51,14 @@
                     android:textColor="@color/text_primary"/>
             </LinearLayout>
 
-            <Button
+            <ImageButton
                 android:id="@+id/selectMovieButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="center_vertical"
-                android:text="Seç"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/gradient_movies_start"/>
+                android:background="#FFFFFF"
+                android:src="@mipmap/movie_star_icon_foreground"
+                android:textColor="@color/white" />
         </LinearLayout>
 
         <LinearLayout

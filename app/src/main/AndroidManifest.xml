@@ -23,13 +23,15 @@
             android:name=".Taskpage"
             android:exported="false" />
         <activity
-            android:name=".Homepage"
+            android:name=".view.Homepage"
             android:exported="false" />
+        <activity android:name=".view.ForgotPasswordActivity" />
+
         <activity
             android:name=".home"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".view.MainActivity"
             android:exported="true">
 
             <intent-filter>
@@ -40,7 +42,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".RegisterActivity" />
+        <activity android:name=".view.RegisterActivity" />
         <activity android:name=".homepage2" />
 
         <receiver
