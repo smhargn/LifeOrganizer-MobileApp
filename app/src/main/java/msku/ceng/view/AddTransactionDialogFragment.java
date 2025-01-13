@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -17,17 +18,27 @@ import android.widget.RadioGroup;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import msku.ceng.CalendarBottomSheetDialog;
 import msku.ceng.R;
+import msku.ceng.adapter.IconAdapter;
 import msku.ceng.model.Budget;
+import msku.ceng.model.IconItem;
 
 public class AddTransactionDialogFragment extends DialogFragment {
     private OnTransactionAddedListener listener;
@@ -35,6 +46,8 @@ public class AddTransactionDialogFragment extends DialogFragment {
     private EditText dateEdit;
     private Calendar selectedDate;
     private FirebaseFirestore db;
+    private Map<Date, List<String>> taskMap = new HashMap<>();
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,12 +80,47 @@ public class AddTransactionDialogFragment extends DialogFragment {
         Button saveButton = view.findViewById(R.id.buttonSave);
         Button cancelButton = view.findViewById(R.id.buttonCancel);
 
-        // Set up date picker
+        Button iconPickerButton = view.findViewById(R.id.buttonSelectIcon);
+
+        iconPickerButton.setOnClickListener(v -> {
+            AlertDialog.Builder iconBuilder = new AlertDialog.Builder(requireContext());
+            View iconDialogView = getLayoutInflater().inflate(R.layout.dialog_select_icon, null);
+            RecyclerView iconRecyclerView = iconDialogView.findViewById(R.id.icon_recycler_view);
+
+            List<IconItem> iconList = new ArrayList<>();
+            iconList.add(new IconItem(R.drawable.ic_budget_1));
+            iconList.add(new IconItem(R.drawable.ic_budget_2));
+            iconList.add(new IconItem(R.drawable.ic_budget_3));
+            iconList.add(new IconItem(R.drawable.ic_budget_4));
+            iconList.add(new IconItem(R.drawable.ic_budget_5));
+            iconList.add(new IconItem(R.drawable.ic_budget_6));
+            iconList.add(new IconItem(R.drawable.ic_budget_7));
+            iconList.add(new IconItem(R.drawable.ic_budget_8));
+            iconList.add(new IconItem(R.drawable.ic_budget_9));
+            iconList.add(new IconItem(R.drawable.ic_budget_10));
+            iconList.add(new IconItem(R.drawable.ic_budget_11));
+            iconList.add(new IconItem(R.drawable.ic_budget_12));
+
+            iconRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 4));
+            IconAdapter iconAdapter = new IconAdapter(iconList, requireContext(), icon -> {
+                selectedIconResourceId = icon.getIconResource();
+                iconPickerButton.setText("");
+                iconPickerButton.setCompoundDrawablesWithIntrinsicBounds(0, icon.getIconResource(), 0, 0);
+                iconPickerButton.setPadding(0, 0, 0, 0);
+            });
+
+            iconRecyclerView.setAdapter(iconAdapter);
+
+
+            AlertDialog iconDialog = iconBuilder.setView(iconDialogView).create();
+            iconDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            iconDialog.show();
+        });
+
         selectedDate = Calendar.getInstance();
         updateDateDisplay();
         dateEdit.setOnClickListener(v -> showDatePicker());
 
-        setupIconSelection(view);
 
         AlertDialog dialog = builder.setView(view)
                 .create();
@@ -98,11 +146,10 @@ public class AddTransactionDialogFragment extends DialogFragment {
                 String id = db.collection("users").document(userId)
                         .collection("budgets").document().getId();
 
+                updateTaskMap(selectedDate.getTime(), description);
+
                 Budget newBudget = new Budget(id, amount, description, category, date, type, selectedIconResourceId);
-
                 Log.d("AddBudget : ",newBudget.getId());
-
-
 
 
                 if (listener != null) {
@@ -120,17 +167,16 @@ public class AddTransactionDialogFragment extends DialogFragment {
     }
 
     private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                getContext(),
-                (view, year, month, dayOfMonth) -> {
-                    selectedDate.set(year, month, dayOfMonth);
-                    updateDateDisplay();
-                },
-                selectedDate.get(Calendar.YEAR),
-                selectedDate.get(Calendar.MONTH),
-                selectedDate.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.show();
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+
+
+        calendarDialog.setOnDateSelectedListener(date -> {
+            selectedDate.setTime(date);
+            updateDateDisplay();
+            calendarDialog.dismiss();
+        });
+        calendarDialog.setTaskMap(taskMap);
+        calendarDialog.show();
     }
 
     private void updateDateDisplay() {
@@ -138,47 +184,17 @@ public class AddTransactionDialogFragment extends DialogFragment {
         dateEdit.setText(sdf.format(selectedDate.getTime()));
     }
 
-    private void setupIconSelection(View view) {
-        ImageView icon1 = view.findViewById(R.id.icon1);
-        ImageView icon2 = view.findViewById(R.id.icon2);
-        ImageView icon3 = view.findViewById(R.id.icon3);
-        ImageView icon4 = view.findViewById(R.id.icon4);
+    private void updateTaskMap(Date date, String task) {
+        Log.d("Calendar","Girildi ");
+        Log.d("Calendar", String.valueOf(date));
+        Log.d("Calendar",task);
+        List<String> tasks = taskMap.getOrDefault(date, new ArrayList<>());
+        tasks.add(task);
+        Log.d("Calendar", String.valueOf(tasks));
+        taskMap.put(date, tasks);
 
-        View.OnClickListener iconClickListener = v -> {
-            if (selectedIconResourceId != -1) {
-                resetIconSelection(view);
-            }
 
-            v.setBackgroundResource(R.drawable.selected_icon_background);
-            selectedIconResourceId = getIconResourceId(v.getId());
-        };
-
-        icon1.setOnClickListener(iconClickListener);
-        icon2.setOnClickListener(iconClickListener);
-        icon3.setOnClickListener(iconClickListener);
-        icon4.setOnClickListener(iconClickListener);
     }
 
-    private void resetIconSelection(View view) {
-        ImageView previousIcon = view.findViewById(getIconViewId(selectedIconResourceId));
-        if (previousIcon != null) {
-            previousIcon.setBackground(null);
-        }
-    }
 
-    private int getIconResourceId(int viewId) {
-        if (viewId == R.id.icon1) return R.mipmap.eaticon_foreground;
-        if (viewId == R.id.icon2) return R.mipmap.busicon_foreground;
-        if (viewId == R.id.icon3) return R.mipmap.invoiceicon_foreground;
-        if (viewId == R.id.icon4) return R.mipmap.shoppingicon_foreground;
-        return R.mipmap.othericon_foreground;
-    }
-
-    private int getIconViewId(int resourceId) {
-        if (resourceId == R.mipmap.eaticon_foreground) return R.id.icon1;
-        if (resourceId == R.mipmap.busicon_foreground) return R.id.icon2;
-        if (resourceId == R.mipmap.invoiceicon_foreground) return R.id.icon3;
-        if (resourceId == R.mipmap.shoppingicon_foreground) return R.id.icon4;
-        return R.id.icon1;
-    }
 }

@@ -17,6 +17,17 @@
         <item name="android:textColorSecondary">@color/black</item>
     </style>
 
+    <style name="incomeBudgetStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">@color/gradient_budget_start</item>
+        <item name="android:textColorSecondary">@color/gradient_budget_start</item>
+    </style>
+
+    <style name="expenseBudgetStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">@color/error_red</item>
+        <item name="android:textColorSecondary">@color/error_red</item>
+    </style>
+
+
     <style name="radioBudget">
         <item name="colorOnSurface">@color/gradient_budget_start</item>
         <item name="colorPrimary">@color/error_red</item>

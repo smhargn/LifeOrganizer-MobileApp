@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import msku.ceng.CalendarBottomSheetDialog;
 import msku.ceng.R;
 import msku.ceng.adapter.BudgetAdapter;
 import msku.ceng.adapter.PlanAdapter;
@@ -47,7 +48,7 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
     private TextView totalExpenseText;
     private FloatingActionButton addTransactionButton;
     private Button buttonFilterAll, buttonFilterIncome, buttonFilterExpense;
-    private Button buttonFilterDay, buttonFilterWeek, buttonFilterMonth, buttonFilterYear;
+    private Button buttonFilterDay, buttonFilterWeek, buttonFilterMonth, buttonFilterYear,buttonFilterChooseDate;
 
     private Button addPlanButton;
     private RecyclerView plansRecyclerView;
@@ -143,10 +144,12 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         buttonFilterWeek = view.findViewById(R.id.buttonFilterWeek);
         buttonFilterMonth = view.findViewById(R.id.buttonFilterMonth);
         buttonFilterYear = view.findViewById(R.id.buttonFilterYear);
+        buttonFilterChooseDate = view.findViewById(R.id.buttonFilterChooseDate);
 
         addPlanButton = view.findViewById(R.id.addPlanButton);
 
     }
+
 
     private void setupRecyclerView() {
         budgetList = new ArrayList<>();
@@ -204,7 +207,21 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
             updatePeriodButtonStyles();
         });
 
+        buttonFilterChooseDate.setOnClickListener(v -> showDatePicker());
         addPlanButton.setOnClickListener(v -> showAddPlanDialog());
+    }
+
+    private void showDatePicker() {
+        CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
+
+        calendarDialog.setOnDateSelectedListener(date -> {
+            selectedDate = Calendar.getInstance();
+            selectedDate.setTime(date);
+
+            updatePeriodFilter("custom");
+            updatePeriodButtonStyles();
+        });
+        calendarDialog.show();
     }
 
     private void initializeData() {
@@ -220,6 +237,12 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
 
     private void updatePeriodFilter(String period) {
         currentPeriod = period;
+
+        if (period.equals("custom") && selectedDate != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            buttonFilterChooseDate.setText(sdf.format(selectedDate.getTime()));
+        }
+
         applyFilters();
     }
 
@@ -249,7 +272,6 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         buttonFilterYear.setBackgroundResource(currentPeriod.equals("year") ?
                 R.drawable.filter_button_selected : R.drawable.filter_button_background);
 
-        // Update text colors
         buttonFilterDay.setTextColor(getResources().getColor(currentPeriod.equals("day") ?
                 android.R.color.white : R.color.gradient_budget_start));
         buttonFilterWeek.setTextColor(getResources().getColor(currentPeriod.equals("week") ?
@@ -360,15 +382,15 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
         filteredList.clear();
         List<Budget> tempList = new ArrayList<>(budgetList);
 
+        final Calendar periodStart = Calendar.getInstance();
 
-        Calendar periodStart = Calendar.getInstance();
+        periodStart.set(Calendar.HOUR_OF_DAY, 0);
+        periodStart.set(Calendar.MINUTE, 0);
+        periodStart.set(Calendar.SECOND, 0);
+        periodStart.set(Calendar.MILLISECOND, 0);
+
         switch (currentPeriod) {
-
             case "day":
-                periodStart.set(Calendar.HOUR_OF_DAY, 0);
-                periodStart.set(Calendar.MINUTE, 0);
-                periodStart.set(Calendar.SECOND, 0);
-                periodStart.set(Calendar.MILLISECOND, 0);
                 break;
             case "week":
                 periodStart.add(Calendar.DAY_OF_MONTH, -7);
@@ -379,13 +401,35 @@ public class BudgetFragment extends Fragment implements AddTransactionDialogFrag
             case "year":
                 periodStart.add(Calendar.YEAR, -1);
                 break;
+            case "custom":
+                if (selectedDate != null) {
+                    periodStart.setTime(selectedDate.getTime());
+                }
+                break;
         }
+
+        System.out.println("Period Start: " + periodStart.getTime());
 
         tempList = tempList.stream()
                 .filter(budget -> {
                     try {
                         Date transactionDate = dateFormat.parse(budget.getDate());
-                        return !transactionDate.before(periodStart.getTime());
+                        if (currentPeriod.equals("custom") && selectedDate != null) {
+                            Calendar transactionCalendar = Calendar.getInstance();
+                            transactionCalendar.setTime(transactionDate);
+                            return transactionCalendar.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
+                                    transactionCalendar.get(Calendar.MONTH) == selectedDate.get(Calendar.MONTH) &&
+                                    transactionCalendar.get(Calendar.DAY_OF_MONTH) == selectedDate.get(Calendar.DAY_OF_MONTH);
+                        }
+                        if (currentPeriod.equals("day")) {
+                            Calendar transactionCalendar = Calendar.getInstance();
+                            transactionCalendar.setTime(transactionDate);
+                            return transactionCalendar.get(Calendar.YEAR) == periodStart.get(Calendar.YEAR) &&
+                                    transactionCalendar.get(Calendar.MONTH) == periodStart.get(Calendar.MONTH) &&
+                                    transactionCalendar.get(Calendar.DAY_OF_MONTH) == periodStart.get(Calendar.DAY_OF_MONTH);
+                        } else {
+                            return !transactionDate.before(periodStart.getTime());
+                        }
                     } catch (ParseException e) {
                         e.printStackTrace();
                         return false;

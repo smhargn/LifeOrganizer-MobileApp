@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">project</string>
+    <string name="app_name">Life Organizer</string>
     <string name="forgotPassword"><u>Forgot your password ?</u></string>
     <string name="register"><u>Create a new user ?</u></string>
     <string name="signin"><u>Sign in</u></string>

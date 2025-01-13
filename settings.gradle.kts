@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "project"
+rootProject.name = "Life Organizer"
 include(":app")
  

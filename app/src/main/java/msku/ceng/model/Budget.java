@@ -23,7 +23,6 @@ public class Budget {
         this.iconResourceId = iconResourceId;
     }
 
-    // Getter ve Setter metodları
     public String getId() {
         return id;
     }

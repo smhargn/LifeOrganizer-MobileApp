@@ -32,7 +32,6 @@ public class RegisterActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
 
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
         ImageView imageView = findViewById(R.id.imageView7);
@@ -42,17 +41,13 @@ public class RegisterActivity extends AppCompatActivity {
                 .centerCrop()
                 .into(imageView);
 
-        // Initialize views
         inputName = findViewById(R.id.input_name);
         inputEmail = findViewById(R.id.input_email);
         inputPassword = findViewById(R.id.input_password);
         registerButton = findViewById(R.id.register_button);
         signinButton = findViewById(R.id.textView5);
-
-        // Register button click listener
         registerButton.setOnClickListener(view -> registerUser());
 
-        // Sign in text click listener
         signinButton.setOnClickListener(view -> {
             Intent loginPage = new Intent(RegisterActivity.this, MainActivity.class);
             startActivity(loginPage);
@@ -65,7 +60,6 @@ public class RegisterActivity extends AppCompatActivity {
         String email = inputEmail.getText().toString().trim();
         String password = inputPassword.getText().toString().trim();
 
-        // Validate input fields
         if (TextUtils.isEmpty(name)) {
             inputName.setError("Name is required");
             return;
@@ -86,15 +80,13 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Show progress
         registerButton.setEnabled(false);
         registerButton.setText("Registering...");
 
-        // Create user with email and password
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Update user profile with name
+
                         FirebaseUser user = mAuth.getCurrentUser();
                         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                 .setDisplayName(name)
@@ -107,14 +99,13 @@ public class RegisterActivity extends AppCompatActivity {
                                             Toast.makeText(RegisterActivity.this,
                                                     "Registration successful",
                                                     Toast.LENGTH_SHORT).show();
-                                            // Navigate to main activity
+
                                             startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                             finish();
                                         }
                                     });
                         }
                     } else {
-                        // Registration failed
                         String errorMessage = task.getException() != null ?
                                 task.getException().getMessage() :
                                 "Registration failed";

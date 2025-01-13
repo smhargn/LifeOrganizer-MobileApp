@@ -40,6 +40,7 @@
                 android:layout_weight="1"
                 android:buttonTint="@color/gradient_budget_end"
                 android:checked="true"
+                android:theme="@style/incomeBudgetStyle"
 
                 android:text="Gelir"
                 android:textColor="@color/text_primary"
@@ -51,7 +52,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:buttonTint="@color/error_red"
+                android:theme="@style/expenseBudgetStyle"
                 android:text="Gider"
                 android:textColor="@color/text_primary"
                 android:textColorLink="@color/darkgrey" />
@@ -66,8 +67,8 @@
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="@color/darkgrey"
         app:hintTextColor="@color/darkgrey"
-        app:startIconDrawable="@drawable/ic_budget"
-        app:startIconTint="@color/icon_tint">
+        app:startIconDrawable="@drawable/ic_money_631200"
+        app:startIconTint="@color/black">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextAmount"
@@ -89,8 +90,8 @@
         android:layout_marginBottom="16dp"
         app:boxStrokeColor="@color/darkgrey"
         app:hintTextColor="@color/darkgrey"
-        app:startIconDrawable="@drawable/ic_add"
-        app:startIconTint="@color/icon_tint">
+        app:startIconDrawable="@drawable/ic_content_management_8468255"
+        app:startIconTint="@color/black">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextDescription"
@@ -110,8 +111,8 @@
         android:layout_marginBottom="16dp"
         app:boxStrokeColor="@color/darkgrey"
         app:hintTextColor="@color/darkgrey"
-        app:startIconDrawable="@drawable/ic_movie"
-        app:startIconTint="@color/icon_tint">
+        app:startIconDrawable="@drawable/ic_category_17195619"
+        app:startIconTint="@color/black">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextCategory"
@@ -130,8 +131,8 @@
         android:layout_marginBottom="24dp"
         app:boxStrokeColor="@color/darkgrey"
         app:hintTextColor="@color/darkgrey"
-        app:startIconDrawable="@drawable/ic_launcher_foreground"
-        app:startIconTint="@color/icon_tint">
+        app:startIconDrawable="@drawable/ic_calendar_661512"
+        app:startIconTint="@color/black">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextDate"
@@ -153,95 +154,16 @@
         android:textColor="@color/text_primary"
         android:layout_marginBottom="12dp"/>
 
-    <HorizontalScrollView
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSelectIcon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/icon1Container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
-                android:layout_marginEnd="12dp">
-
-                <ImageView
-                    android:id="@+id/icon1"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@mipmap/eaticon_foreground"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/icon2Container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
-                android:layout_marginEnd="12dp">
-
-                <ImageView
-                    android:id="@+id/icon2"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@mipmap/busicon_foreground"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/icon3Container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
-                android:layout_marginEnd="12dp">
-
-                <ImageView
-                    android:id="@+id/icon3"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@mipmap/invoiceicon_foreground"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/icon4Container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider">
-
-                <ImageView
-                    android:id="@+id/icon4"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@mipmap/shoppingicon_foreground"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-    </HorizontalScrollView>
+        android:padding="16dp"
+        android:backgroundTint="@color/lightgrey"
+        android:text="Select Icon"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        app:cornerRadius="8dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"

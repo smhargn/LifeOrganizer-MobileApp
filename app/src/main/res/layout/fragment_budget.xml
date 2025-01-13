@@ -241,6 +241,13 @@
                         android:layout_height="32dp"
                         android:text="Yıl"
                         style="@style/ChipChoiceStyle"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/buttonFilterChooseDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:text="Choose Date"
+                        style="@style/ChipChoiceStyle"/>
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
         </LinearLayout>

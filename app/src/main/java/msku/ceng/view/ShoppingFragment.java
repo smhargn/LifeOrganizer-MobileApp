@@ -21,9 +21,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -41,7 +43,9 @@ import java.util.Map;
 
 import msku.ceng.CalendarBottomSheetDialog;
 import msku.ceng.R;
+import msku.ceng.adapter.IconAdapter;
 import msku.ceng.adapter.ShoppingListAdapter;
+import msku.ceng.model.IconItem;
 import msku.ceng.model.ShoppingItem;
 import msku.ceng.model.ShoppingList;
 import msku.ceng.repository.ShoppingRepository;
@@ -58,6 +62,7 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
     private FirebaseAuth auth;
     private ImageView emptyshopping;
     private Date selectedDateForNewList = null;
+    private int selectedIconResId = R.drawable.ic_shopping_cart_15017503;
 
     private Button dateFilterButton;
     private Map<Date, List<String>> taskMap;
@@ -263,10 +268,13 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_list, null);
         EditText listNameInput = dialogView.findViewById(R.id.list_name_input);
-        RadioGroup iconGroup = dialogView.findViewById(R.id.icon_group);
         Button datePickerButton = dialogView.findViewById(R.id.date_picker_button);
+        Button iconPickerButton = dialogView.findViewById(R.id.icon_picker_button);
         Button cancelButton = dialogView.findViewById(R.id.btn_cancel);
         Button createButton = dialogView.findViewById(R.id.btn_create);
+
+
+        final int[] selectedIconResId = {R.drawable.ic_shopping_cart_15017503};
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         datePickerButton.setText(sdf.format(selectedDate));
@@ -274,6 +282,38 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         AlertDialog dialog = builder.setView(dialogView)
                 .create();
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        iconPickerButton.setOnClickListener(v -> {
+            AlertDialog.Builder iconBuilder = new AlertDialog.Builder(requireContext());
+            View iconDialogView = getLayoutInflater().inflate(R.layout.dialog_select_icon, null);
+            RecyclerView iconRecyclerView = iconDialogView.findViewById(R.id.icon_recycler_view);
+
+            List<IconItem> iconList = new ArrayList<>();
+            iconList.add(new IconItem(R.drawable.ic_shopping_cart_15017503));
+            iconList.add(new IconItem(R.drawable.ic_shopaholic_15018228));
+            iconList.add(new IconItem(R.drawable.ic_food_15018697));
+            iconList.add(new IconItem(R.drawable.ic_gift_card_15017793));
+            iconList.add(new IconItem(R.drawable.ic_shopping_1));
+            iconList.add(new IconItem(R.drawable.ic_shopping_2));
+            iconList.add(new IconItem(R.drawable.ic_shopping_3));
+            iconList.add(new IconItem(R.drawable.ic_shopping_4));
+            iconList.add(new IconItem(R.drawable.ic_shopping_5));
+            iconList.add(new IconItem(R.drawable.ic_shopping_6));
+            iconList.add(new IconItem(R.drawable.ic_shopping_7));
+            iconList.add(new IconItem(R.drawable.ic_shopping_8));
+
+            iconRecyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 4));
+            IconAdapter iconAdapter = new IconAdapter(iconList, requireContext(), icon -> {
+                selectedIconResId[0] = icon.getIconResource();
+                iconPickerButton.setCompoundDrawablesWithIntrinsicBounds(icon.getIconResource(), 0, 0, 0);
+            });
+
+            iconRecyclerView.setAdapter(iconAdapter);
+
+            AlertDialog iconDialog = iconBuilder.setView(iconDialogView).create();
+            iconDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            iconDialog.show();
+        });
 
         datePickerButton.setOnClickListener(v -> {
             CalendarBottomSheetDialog calendarDialog = new CalendarBottomSheetDialog(requireContext());
@@ -292,10 +332,9 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         createButton.setOnClickListener(v -> {
             String listName = listNameInput.getText().toString().trim();
             if (!listName.isEmpty() && selectedDateForNewList != null) {
-                int iconResId = getSelectedIcon(iconGroup.getCheckedRadioButtonId());
                 FirebaseUser user = auth.getCurrentUser();
                 if (user != null) {
-                    ShoppingList newList = new ShoppingList(listName, iconResId, selectedDateForNewList, user.getUid());
+                    ShoppingList newList = new ShoppingList(listName, selectedIconResId[0], selectedDateForNewList, user.getUid());
 
                     repository.addShoppingList(newList)
                             .addOnSuccessListener(aVoid -> {
@@ -313,14 +352,6 @@ public class ShoppingFragment extends Fragment implements ShoppingListAdapter.On
         dialog.show();
     }
 
-    private int getSelectedIcon(int checkedId) {
-        if (checkedId == R.id.icon_grocery) {
-            return R.drawable.ic_sport;
-        } else if (checkedId == R.id.icon_market) {
-            return R.drawable.ic_budget;
-        }
-        return R.drawable.ic_movie;
-    }
 
     @Override
     public void onAddItemClick(ShoppingList list) {

@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         googleSignInButton = findViewById(R.id.googleSignInButton);
-
         editTextEmail = findViewById(R.id.editusername);
         editTextPassword = findViewById(R.id.editpassword);
         loginButton = findViewById(R.id.loginButton);
@@ -70,9 +69,8 @@ public class MainActivity extends AppCompatActivity {
         loginButton.setOnClickListener(view -> loginUser());
         forgotButton.setOnClickListener(view -> resetPassword());
 
-        // Google Sign-In için yapılandırma
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Firebase Console'dan aldığınız client ID
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
@@ -90,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         String email = editTextEmail.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
 
-
         if (TextUtils.isEmpty(email)) {
             editTextEmail.setError("Email is required");
             return;
@@ -101,32 +98,35 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         loginButton.setEnabled(false);
         loginButton.setText("Logging in...");
 
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(MainActivity.this,
-                                "Login successful",
-                                Toast.LENGTH_SHORT).show();
-                        Intent loginPage = new Intent(MainActivity.this, Homepage.class);
-                        loginPage.putExtra("USERNAME_KEY", email);
-                        startActivity(loginPage);
-                        finish();
-                    } else {
-                        String errorMessage = task.getException() != null ?
-                                task.getException().getMessage() :
-                                "Authentication failed";
-                        Toast.makeText(MainActivity.this,
-                                errorMessage,
-                                Toast.LENGTH_LONG).show();
+        new Thread(() -> {
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        runOnUiThread(() -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(MainActivity.this,
+                                        "Login successful",
+                                        Toast.LENGTH_SHORT).show();
+                                Intent loginPage = new Intent(MainActivity.this, Homepage.class);
+                                loginPage.putExtra("USERNAME_KEY", email);
+                                startActivity(loginPage);
+                                finish();
+                            } else {
+                                String errorMessage = task.getException() != null ?
+                                        task.getException().getMessage() :
+                                        "Authentication failed";
+                                Toast.makeText(MainActivity.this,
+                                        errorMessage,
+                                        Toast.LENGTH_LONG).show();
 
-                        loginButton.setEnabled(true);
-                        loginButton.setText("Log in");
-                    }
-                });
+                                loginButton.setEnabled(true);
+                                loginButton.setText("Log in");
+                            }
+                        });
+                    });
+        }).start();
     }
 
     private void signInWithGoogle() {
